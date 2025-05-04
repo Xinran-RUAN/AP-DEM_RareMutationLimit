@@ -1,0 +1,394 @@
+\documentclass[preprint]{elsarticle}
+\usepackage{stmaryrd, amsmath, amsthm, mathrsfs}
+\usepackage{tabularx, subfigure, epsfig, graphicx, cases}
+\usepackage{color, CJK, anysize, enumerate}
+\usepackage[colorlinks,hyperindex,CJKbookmarks,linkcolor=blue,anchorcolor=blue,citecolor=green]{hyperref}
+\usepackage{booktabs, multirow}
+\biboptions{numbers, sort&compress}
+
+%\usepackage{jcomp}
+
+\newtheorem{prop}{Proposition}[section]
+\newtheorem{remark}{Remark}[section]
+
+\newcommand{\bmath}[1]{\mbox{\boldmath{$#1$}}}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\bes}{\begin{equation*}}
+\newcommand{\ees}{\end{equation*}}
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}
+
+\def\bX{\mathbf{X}}
+\def\bn{\mathbf{n}}
+\def\p{\partial}
+\def\bth{\bar{\theta}}
+\def\btau{\bmath{\tau}}
+\def\barp{\bar{p}}
+\def\subFS{\scriptscriptstyle{FS}}
+\def\subVS{\scriptscriptstyle{VS}}
+\def\wgamma{\widetilde{\gamma}}
+
+\numberwithin{equation}{section}
+\renewcommand{\theequation}{\arabic{section}.\arabic{equation}}
+
+\begin{document}
+
+\begin{frontmatter}
+\title{}
+%\author[1]{Weijie Huang}
+%\cortext[cor1]{Corresponding author at: School of Mathematics and Statistics, Beijing Jiaotong University, Beijing 100044, China.}
+%\ead{wjhuang@bjtu.edu.cn}
+%
+%\address[1]{School of Mathematics and Statistics, Beijing Jiaotong University, Beijing 100044, China}
+
+\begin{abstract}
+
+\end{abstract}
+
+\end{frontmatter}
+%==================== Introduction ==================
+\section{}
+The equation of $n_\varepsilon (x,\theta)$
+\begin{equation}\label{eq:original_eq}
+\left\{
+\begin{aligned}
+&-D(\theta)\Delta_x n_\varepsilon -\varepsilon^2\Delta_\theta n_\varepsilon = n_\varepsilon(K(x)-\rho_\varepsilon(x)),\\
+&\rho_\varepsilon = \int_0^1n_\varepsilon(x,\theta) d\theta
+\end{aligned}
+\right.
+\end{equation}
+Set $n_\varepsilon(x,\theta) = W_\varepsilon(x,\theta) e^{u(\theta)/\varepsilon}$, then
+\begin{equation}
+\begin{aligned}
+&\nabla_x n_\varepsilon = \nabla_x W_\varepsilon ~e^{u/\varepsilon},\\
+&\Delta_x n_\varepsilon = \Delta_x W_\varepsilon ~e^{u/\varepsilon},\\
+&\nabla_\theta n_\varepsilon = \nabla_\theta W_\varepsilon ~e^{u/\varepsilon} + W_\varepsilon ~e^{u/\varepsilon} \dfrac{\nabla_\theta u}{\varepsilon},\\
+&\Delta_\theta n_\varepsilon = \Delta_\theta W_\varepsilon ~e^{u/\varepsilon} + 2\nabla_\theta W_\varepsilon~e^{u/\varepsilon}~\dfrac{\nabla_\theta u}{\varepsilon} + W_\varepsilon e^{u/\varepsilon}\dfrac{|\nabla_\theta u|^2}{\varepsilon^2} + W_\varepsilon e^{u/\varepsilon}\dfrac{\Delta_\theta u}{\varepsilon}
+\end{aligned}
+\end{equation}
+and \eqref{eq:original_eq} will be
+\begin{equation}
+\begin{aligned}
+&-D(\theta)\Delta_x W_\varepsilon ~e^{u/\varepsilon} -\varepsilon^2\left(\Delta_\theta W_\varepsilon ~e^{u/\varepsilon} + 2e^{u/\varepsilon}~\dfrac{\nabla_\theta W_\varepsilon\cdot \nabla_\theta u}{\varepsilon} + W_\varepsilon e^{u/\varepsilon}\dfrac{|\nabla_\theta u|^2}{\varepsilon^2} + W_\varepsilon e^{u/\varepsilon}\dfrac{\Delta_\theta u}{\varepsilon}\right)\\
+&= W_\varepsilon e^{u/\varepsilon}(K(x)-\rho_\varepsilon(x)),\\
+&-D(\theta)\Delta_x W_\varepsilon ~e^{u/\varepsilon} -\varepsilon^2\Delta_\theta W_\varepsilon ~e^{u/\varepsilon} - 2e^{u/\varepsilon}~\nabla_\theta W_\varepsilon\cdot \nabla_\theta u\varepsilon - W_\varepsilon e^{u/\varepsilon}|\nabla_\theta u|^2 - W_\varepsilon e^{u/\varepsilon}\Delta_\theta u\varepsilon\\
+&= W_\varepsilon e^{u/\varepsilon}(K(x)-\rho_\varepsilon(x)),\\
+\end{aligned}
+\end{equation}
+i.e.,
+\begin{equation}
+\begin{aligned}
+&-D(\theta)\Delta_x W_\varepsilon -\varepsilon^2\Delta_\theta W_\varepsilon - 2\varepsilon\nabla_\theta W_\varepsilon\cdot \nabla_\theta u - W_\varepsilon |\nabla_\theta u|^2 - W_\varepsilon \Delta_\theta u\varepsilon= W_\varepsilon (K(x)-\rho_\varepsilon(x)),\\
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{cases}
+\begin{aligned}
+&-D(\theta)\Delta_x W_\varepsilon -\varepsilon^2\Delta_\theta W_\varepsilon - 2\varepsilon\nabla_\theta W_\varepsilon\cdot \nabla_\theta u = W_\varepsilon (K(x)-\rho_\varepsilon(x)),\\
+& - |\nabla_\theta u|^2 - \varepsilon \Delta_\theta u=0
+\end{aligned}
+\end{cases}
+\end{equation}
+
+\begin{equation}
+\left\{
+\begin{aligned}
+&-D(\theta)\Delta_x W_\varepsilon -\varepsilon^2\Delta_\theta W_\varepsilon - 2\varepsilon\nabla_\theta W_\varepsilon\cdot \nabla_\theta u = W_\varepsilon (K(x)-\rho_\varepsilon(x)) + W_\varepsilon H,\\
+& - |\nabla_\theta u|^2 - \varepsilon \Delta_\theta u= -H
+\end{aligned}
+\right.
+\end{equation}
+
+The eigenvalue problem
+\begin{equation}
+\begin{aligned}
+&-D(\theta)\Delta_x W_\varepsilon - W_\varepsilon (K(x)-\rho_\varepsilon(x)) = W_\varepsilon H,\\
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\rho_\varepsilon(x) = \int_0^1 W_\varepsilon(x,\theta) e^{u(\theta)/\varepsilon} d\theta
+\end{equation}
+
+\begin{equation}
+\varepsilon \to 0, \qquad \rho_\varepsilon(x) \to \int_0^1 W_\varepsilon(x,\theta) \delta(\theta-\theta_m) d\theta = \bar{W},
+\end{equation}
+where $\bar{W}(x)$ satisfies
+$$-D(\theta_m) \Delta_x \bar{W}=\bar{W}(K(x)-\bar{W})$$
+
+1. initial value $W_\varepsilon(x,\theta), u(\theta)$;
+
+2. calculate $\rho_\varepsilon$;
+
+3. eigenvalue $H$;
+
+4. the second equation, calculate $u(\theta)$;
+
+5. the first equation, calculate $W_\varepsilon$.
+
+\newpage
+
+$$
+    \partial_t n_\varepsilon -D(\theta)\Delta_x n_\varepsilon -\varepsilon^2\Delta_\theta n_\varepsilon = n_\varepsilon(K(x)-\rho_\varepsilon(x))
+$$
+Set $n_\varepsilon(x,\theta, t) = W_\varepsilon(x,\theta, t) e^{u(\theta, t)/\varepsilon}$, then
+\begin{equation}
+\begin{aligned}
+&\partial_t n_\varepsilon = \partial_t W_\varepsilon e^{u/\varepsilon} + W_\varepsilon e^{u/\varepsilon}\dfrac{\partial_t u}{\varepsilon},\\
+&\nabla_x n_\varepsilon = \nabla_x W_\varepsilon ~e^{u/\varepsilon},\\
+&\Delta_x n_\varepsilon = \Delta_x W_\varepsilon ~e^{u/\varepsilon},\\
+&\nabla_\theta n_\varepsilon = \nabla_\theta W_\varepsilon ~e^{u/\varepsilon} + W_\varepsilon ~e^{u/\varepsilon} \dfrac{\nabla_\theta u}{\varepsilon},\\
+&\Delta_\theta n_\varepsilon = \Delta_\theta W_\varepsilon ~e^{u/\varepsilon} + 2\nabla_\theta W_\varepsilon~e^{u/\varepsilon}~\dfrac{\nabla_\theta u}{\varepsilon} + W_\varepsilon e^{u/\varepsilon}\dfrac{|\nabla_\theta u|^2}{\varepsilon^2} + W_\varepsilon e^{u/\varepsilon}\dfrac{\Delta_\theta u}{\varepsilon}
+\end{aligned}
+\end{equation}
+and
+\begin{equation}
+\begin{aligned}
+&\partial_t W_\varepsilon e^{u/\varepsilon} + W_\varepsilon e^{u/\varepsilon}\dfrac{\partial_t u}{\varepsilon}\\
+&-D(\theta)\Delta_x W_\varepsilon ~e^{u/\varepsilon} -\varepsilon^2\left(\Delta_\theta W_\varepsilon ~e^{u/\varepsilon} + 2e^{u/\varepsilon}~\dfrac{\nabla_\theta W_\varepsilon\cdot \nabla_\theta u}{\varepsilon} + W_\varepsilon e^{u/\varepsilon}\dfrac{|\nabla_\theta u|^2}{\varepsilon^2} + W_\varepsilon e^{u/\varepsilon}\dfrac{\Delta_\theta u}{\varepsilon}\right)\\
+&= W_\varepsilon e^{u/\varepsilon}(K(x)-\rho_\varepsilon(x)),\\
+&\partial_t W_\varepsilon e^{u/\varepsilon} + W_\varepsilon e^{u/\varepsilon}\dfrac{\partial_t u}{\varepsilon}\\
+&-D(\theta)\Delta_x W_\varepsilon ~e^{u/\varepsilon} -\varepsilon^2\Delta_\theta W_\varepsilon ~e^{u/\varepsilon} - 2e^{u/\varepsilon}~\nabla_\theta W_\varepsilon\cdot \nabla_\theta u\varepsilon - W_\varepsilon e^{u/\varepsilon}|\nabla_\theta u|^2 - W_\varepsilon e^{u/\varepsilon}\Delta_\theta u\varepsilon\\
+&= W_\varepsilon e^{u/\varepsilon}(K(x)-\rho_\varepsilon(x)),\\
+\end{aligned}
+\end{equation}
+and
+\begin{equation}
+\begin{cases}
+\begin{aligned}
+&\partial_t W_\varepsilon-D(\theta)\Delta_x W_\varepsilon -\varepsilon^2\Delta_\theta W_\varepsilon - 2\varepsilon\nabla_\theta W_\varepsilon\cdot \nabla_\theta u = W_\varepsilon (K(x)-\rho_\varepsilon(x)),\\
+& \dfrac{\partial_t u}{\varepsilon} - |\nabla_\theta u|^2 - \varepsilon \Delta_\theta u=0
+\end{aligned}
+\end{cases}
+\end{equation}
+so
+\begin{equation}
+\begin{cases}
+\begin{aligned}
+&\partial_t W_\varepsilon-D(\theta)\Delta_x W_\varepsilon -\varepsilon^2\Delta_\theta W_\varepsilon - 2\varepsilon\nabla_\theta W_\varepsilon\cdot \nabla_\theta u = W_\varepsilon (K(x)-\rho_\varepsilon(x)) + W_\varepsilon H,\\
+& \dfrac{\partial_t u}{\varepsilon} - |\nabla_\theta u|^2 - \varepsilon \Delta_\theta u= -H
+\end{aligned}
+\end{cases}
+\end{equation}
+where $H$ and $\rho_\varepsilon$ are obtained by the eigenvalue problem
+\begin{equation}
+\begin{aligned}
+&-D(\theta)\Delta_x W_\varepsilon - W_\varepsilon (K(x)-\rho_\varepsilon(x)) = W_\varepsilon H,\\
+\end{aligned}
+\end{equation}
+and
+\begin{equation}
+\rho_\varepsilon(x) = \int_0^1 W_\varepsilon(x,\theta) e^{u(\theta)/\varepsilon} d\theta
+\end{equation}
+
+The step to solve the problem:
+\begin{itemize}
+\item initial value $t=0$: $W_\varepsilon(x,\theta, 0), u(\theta, 0)$;
+
+\item calculate $\rho_\varepsilon(x, 0)$;
+
+\item solve the eigenvalue problem and obtain $H$;
+
+\item solve the second equation, obtain $u(\theta)$;
+
+\item solve the first equation, obtain $W_\varepsilon$.
+\end{itemize}
+
+\subsection*{Discretization}
+1D: \begin{equation}
+\rho_\varepsilon(x_j) = \int_0^1 W_\varepsilon(x_j,\theta) e^{u(\theta)/\varepsilon} d\theta = \sum_{i=1}^M\int_{\theta_{i-1}}^{\theta_i} W_\varepsilon(x_j, \theta) e^{u(\theta)/\varepsilon} d\theta
+\end{equation}
+The choose of numerical integration?
+
+The eigenvalue problem: Sturm-Liouville theory. We obtain $H_0, H_1, \cdots, H_M$.
+\begin{equation}
+\begin{aligned}
+&-D(\theta)\dfrac{ W_\varepsilon(x_{j+1}, \theta) - 2W_\varepsilon(x_j, \theta) + W_\varepsilon(x_{j-1}, \theta)}{\delta x^2} - W_\varepsilon(x_j, \theta) (K(x_j)-\rho_\varepsilon(x_j)) = W_\varepsilon(x_j,\theta) H,\qquad j = 1,2,\cdots, N-1\\
+\end{aligned}
+\end{equation}
+with the Neumann boundary condition:
+$$W_\varepsilon(x_0, \theta_j) = W_\varepsilon(x_1, \theta_j), \qquad W_\varepsilon(x_N, \theta_j) = W_\varepsilon(x_{N-1}, \theta_j)$$
+
+the matrix:
+$$-D(\theta)\dfrac{1}{\delta x^2} (-2diag(ones(n,1), 0) + diag(ones(n-1, 1), 1) + diag(ones(n-1, 1), -1)) - diag(K_j-\rho_j)$$
+i.e.
+\begin{equation}
+-D(\theta)\dfrac{1}{\delta x^2}\left[
+\begin{matrix}
+-1 & 1 & 0 & \cdots & 0\\
+1 & -2 & 1 & \cdots & 0\\
+0 & 1 & -2 &\cdots &0\\
+ & & \cdots & &\\
+0 &\cdots & 1 &-2 & 1\\
+0&\cdots & 0 &1 &-1
+\end{matrix}
+\right] \left(
+\begin{matrix}
+w_1\\
+w_2\\
+\vdots\\
+w_{N-2}\\
+w_{N-1}
+\end{matrix}
+\right)-
+\left[
+\begin{matrix}
+K_1-\rho_1 & 0  &\cdots &0\\
+0&K_2-\rho_2 &  \cdots &0\\
+&&\ddots &\\
+0& 0 &\cdots &  K_{N-1}-\rho_{N-1}
+\end{matrix}
+\right] \left(
+\begin{matrix}
+w_1\\
+w_2\\
+\vdots\\
+w_{N-2}\\
+w_{N-1}
+\end{matrix}
+\right)
+\end{equation}
+
+
+
+Then we solve the second equation by finite difference method:
+\begin{equation}
+\begin{aligned}
+& \dfrac{\partial_t u(\theta,t)}{\varepsilon} - |\nabla_\theta u(\theta,t)|^2 - \varepsilon \Delta_\theta u(\theta, t)= -H(\theta)
+\end{aligned}
+\end{equation}
+In 1D case,
+\begin{equation}
+\begin{aligned}
+& \dfrac{\partial_t u(\theta,t)}{\varepsilon} - \left(\partial_\theta u(\theta,t)\right)^2 - \varepsilon \partial_{\theta\theta} u(\theta, t)= -H(\theta)
+\end{aligned}
+\end{equation}
+and the forward Euler,
+\begin{equation}
+\begin{aligned}
+& \dfrac{u(\theta_i, t_{m+1}) - u(\theta_i, t_m)}{\varepsilon\tau} - \left(\dfrac{u(\theta_{i+1}, t_m) - u(\theta_{i}, t_m) or u(\theta_i, t_m) -u(\theta_{i-1}, t_m)}{\delta \theta}\right)^2 \\
+& - \varepsilon \dfrac{u(\theta_{i+1},t_{m+1}) - 2u(\theta_i, t_{m+1}) + u(\theta_{i-1}, t_{m+1})}{\delta \theta ^2}= -H(\theta_i)
+\end{aligned}
+\end{equation}
+i.e.
+\begin{equation}
+\begin{aligned}
+& \dfrac{u(\theta_i, t_{m+1}) - u(\theta_i, t_m)}{\varepsilon\tau} - \varepsilon \dfrac{u(\theta_{i+1},t_{m+1}) - 2u(\theta_i, t_{m+1}) + u(\theta_{i-1}, t_{m+1})}{\delta \theta ^2}= -H(\theta_i) + dthetaupwind^2,\\
+& u(\theta_i, t_{m+1}) - u(\theta_i, t_m) - \varepsilon^2\tau \dfrac{u(\theta_{i+1},t_{m+1}) - 2u(\theta_i, t_{m+1}) + u(\theta_{i-1}, t_{m+1})}{\delta \theta ^2}= \varepsilon\tau(-H(\theta_i) + dthetaupwind^2),\\
+& u(\theta_i, t_{m+1}) + \dfrac{2\varepsilon^2\tau}{\delta\theta^2} u(\theta_i, t_{m+1}) - \dfrac{\varepsilon^2\tau}{\delta\theta^2} u(\theta_{i+1},t_{m+1}) -\dfrac{\varepsilon^2\tau}{\delta\theta^2} u(\theta_{i-1}, t_{m+1}) = u(\theta_i, t_m) + \varepsilon\tau(-H(\theta_i) + dthetaupwind^2),\\
+\end{aligned}
+\end{equation}
+
+
+obtain $u(\theta_i, t_{m+1})$, and we solve the first equation
+\begin{equation}
+\begin{aligned}
+&\partial_t W_\varepsilon(x,\theta,t) - D(\theta)\partial_{xx} W_\varepsilon(x,\theta,t) -\varepsilon^2\partial_{\theta\theta} W_\varepsilon - 2\varepsilon\partial_{\theta} W_\varepsilon~ \partial_\theta u = W_\varepsilon (K(x)-\rho_\varepsilon(x)) + W_\varepsilon H,\\
+\end{aligned}
+\end{equation}
+which is discreted as
+ \begin{equation}
+\begin{aligned}
+&\dfrac{ W_\varepsilon(x_j, \theta_i, t_{m+1}) - W_\varepsilon(x_j, \theta_i, t_m)}{\tau}-D(\theta)\dfrac{W_\varepsilon(x_{j+1},\theta_i, t_{m+1}) - 2W_\varepsilon(x_j,\theta_i,t_{m+1}) + W_\varepsilon(x_{j-1}, \theta_i, t_{m+1})}{\delta x^2} \\
+&-\varepsilon^2\dfrac{W_\varepsilon(x_j,\theta_{j+1},t_{m+1})-2W_\varepsilon(x_j,\theta_{j}, t_{m+1})+W_\varepsilon(x_j,\theta_{j-1}, t_{m+1})}{\delta\theta^2} \\
+&- 2\varepsilon dwupwind\dfrac{u(\theta_{j+1},t_{m+1}) -u(\theta_{j-1},t_{m+1})}{2\delta\theta} \\
+&= W_\varepsilon (K(x)-\rho_\varepsilon(x)) + W_\varepsilon H,\\
+\end{aligned}
+\end{equation}
+i.e.
+ \begin{equation}
+\begin{aligned}
+&\dfrac{ W_\varepsilon(x_j, \theta_i, t_{m+1}) - W_\varepsilon(x_j, \theta_i, t_m)}{\tau}-D(\theta)\dfrac{W_\varepsilon(x_{j+1},\theta_i, t_{m+1}) - 2W_\varepsilon(x_j,\theta_i,t_{m+1}) + W_\varepsilon(x_{j-1}, \theta_i, t_{m+1})}{\delta x^2} \\
+&-\varepsilon^2\dfrac{W_\varepsilon(x_j,\theta_{j+1},t_{m+1})-2W_\varepsilon(x_j,\theta_{j}, t_{m+1})+W_\varepsilon(x_j,\theta_{j-1}, t_{m+1})}{\delta\theta^2} \\
+&= 2\varepsilon dwupwind\dfrac{u(\theta_{j+1},t_{m+1}) -u(\theta_{j-1},t_{m+1})}{2\delta\theta}
++ W_\varepsilon (K(x)-\rho_\varepsilon(x)) + W_\varepsilon H,\\
+\end{aligned}
+\end{equation}
+
+ \begin{equation}
+\begin{aligned}
+& W_\varepsilon(x_j, \theta_i, t_{m+1}) -\dfrac{\tau D}{\delta x^2}[W_\varepsilon(x_{j+1},\theta_i, t_{m+1}) - 2W_\varepsilon(x_j,\theta_i,t_{m+1}) + W_\varepsilon(x_{j-1}, \theta_i, t_{m+1})] \\
+&-\dfrac{\varepsilon^2\tau}{\delta\theta^2}[W_\varepsilon(x_j,\theta_{j+1},t_{m+1})-2W_\varepsilon(x_j,\theta_{j}, t_{m+1})+W_\varepsilon(x_j,\theta_{j-1}, t_{m+1})] \\
+&= \tau(2\varepsilon dwupwind\dfrac{u(\theta_{j+1},t_{m+1}) -u(\theta_{j-1},t_{m+1})}{2\delta\theta}
++ W_\varepsilon (K(x)-\rho_\varepsilon(x)) + W_\varepsilon H) + W_\varepsilon(x_j, \theta_i, t_m),\\
+\end{aligned}
+\end{equation}
+
+ \begin{equation}
+\begin{aligned}
+& W_\varepsilon(x_j, \theta_i, t_{m+1}) -\dfrac{\tau D}{\delta x^2}W_\varepsilon(x_{j+1},\theta_i, t_{m+1}) + \dfrac{2\tau D}{\delta x^2} W_\varepsilon(x_j,\theta_i,t_{m+1}) -\dfrac{\tau D}{\delta x^2} W_\varepsilon(x_{j-1}, \theta_i, t_{m+1}) \\
+&-\dfrac{\varepsilon^2\tau}{\delta\theta^2}W_\varepsilon(x_j,\theta_{i+1},t_{m+1})+\dfrac{2\varepsilon^2\tau}{\delta\theta^2}W_\varepsilon(x_j,\theta_{i}, t_{m+1})-\dfrac{\varepsilon^2\tau}{\delta\theta^2}W_\varepsilon(x_j,\theta_{i-1}, t_{m+1}) \\
+&= \tau(2\varepsilon dwupwind\dfrac{u(\theta_{i+1},t_{m+1}) -u(\theta_{i-1},t_{m+1})}{2\delta\theta}
++ W_\varepsilon (K(x)-\rho_\varepsilon(x)) + W_\varepsilon H) + W_\varepsilon(x_j, \theta_i, t_m),\\
+\end{aligned}
+\end{equation}
+
+ \begin{equation}
+\begin{aligned}
+& W_\varepsilon(x_j, \theta_i, t_{m+1}) + \dfrac{2\tau D}{\delta x^2} W_\varepsilon(x_j,\theta_i,t_{m+1}) +\dfrac{2\varepsilon^2\tau}{\delta\theta^2}W_\varepsilon(x_j,\theta_{i}, t_{m+1})\\
+ & -\dfrac{\tau D}{\delta x^2}W_\varepsilon(x_{j+1},\theta_i, t_{m+1}) -\dfrac{\tau D}{\delta x^2} W_\varepsilon(x_{j-1}, \theta_i, t_{m+1}) \\
+&-\dfrac{\varepsilon^2\tau}{\delta\theta^2}W_\varepsilon(x_j,\theta_{i+1},t_{m+1})-\dfrac{\varepsilon^2\tau}{\delta\theta^2}W_\varepsilon(x_j,\theta_{i-1}, t_{m+1}) \\
+&= \tau(2\varepsilon dwupwind\dfrac{u(\theta_{i+1},t_{m+1}) -u(\theta_{i-1},t_{m+1})}{2\delta\theta}
++ W_\varepsilon (K(x)-\rho_\varepsilon(x)) + W_\varepsilon H) + W_\varepsilon(x_j, \theta_i, t_m),\\
+\end{aligned}
+\end{equation}
+
+
+\newpage
+\begin{equation}
+\begin{aligned}
+& \partial_t n_\varepsilon -D(\theta)\Delta_x n_\varepsilon -\varepsilon^2\Delta_\theta n_\varepsilon = n_\varepsilon(K(x)-\rho_\varepsilon(x)),\\
+& \rho_\varepsilon = \int_0^1n_\varepsilon(x,\theta) d\theta
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}
+\dfrac{n_\varepsilon(x_j, \theta_i, t^{m+1}) - n_\varepsilon(x_j,\theta_i, t^m)}{\delta t} - D(\theta_i) \dfrac{n_\varepsilon(x_{j+1}, \theta_i, t_{m+1}) - 2n_\varepsilon(x_j, \theta_i, t_{m+1}) + n_\varepsilon(x_{j-1}, \theta_i, t_{m+1})}{\delta x^2}\\
+-\varepsilon^2 \dfrac{n_\varepsilon(x_j, \theta_{i+1}, t_{m+1}) - 2n_\varepsilon(x_j, \theta_i, t_{m+1}) + n_\varepsilon(x_j, \theta_{i-1}, t_{m+1})}{\delta\theta^2} - n_\varepsilon(x_j, \theta_i, t_{m+1}) \left(K(x_j) - \rho_\varepsilon(x_j)\right) = 0
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}
+& n_\varepsilon(x_j, \theta_i, t^{m+1}) - D(\theta_i)\delta t \dfrac{n_\varepsilon(x_{j+1}, \theta_i, t_{m+1}) - 2n_\varepsilon(x_j, \theta_i, t_{m+1}) + n_\varepsilon(x_{j-1}, \theta_i, t_{m+1})}{\delta x^2}\\
+& -\varepsilon^2 \delta t\dfrac{n_\varepsilon(x_j, \theta_{i+1}, t_{m+1}) - 2n_\varepsilon(x_j, \theta_i, t_{m+1}) + n_\varepsilon(x_j, \theta_{i-1}, t_{m+1})}{\delta\theta^2} -\delta t n_\varepsilon(x_j, \theta_i, t_{m+1}) \left(K(x_j) - \rho_\varepsilon(x_j)\right) = n_\varepsilon(x_j,\theta_i, t^m)
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}
+& n_\varepsilon(x_j, \theta_i, t^{m+1}) + 2D(\theta_i)\delta t/\delta x^2n_\varepsilon(x_j, \theta_i, t^{m+1}) - D(\theta_i)\delta t \dfrac{n_\varepsilon(x_{j+1}, \theta_i, t_{m+1})  + n_\varepsilon(x_{j-1}, \theta_i, t_{m+1})}{\delta x^2}\\
+& + 2\varepsilon^2 \delta t/\delta \theta^2 n_\varepsilon(x_j,\theta_i t_{m+1})
+-\varepsilon^2 \delta t\dfrac{n_\varepsilon(x_j, \theta_{i+1}, t_{m+1}) + n_\varepsilon(x_j, \theta_{i-1}, t_{m+1})}{\delta\theta^2} \\
+& -\delta t n_\varepsilon(x_j, \theta_i, t_{m+1}) \left(K(x_j) - \rho_\varepsilon(x_j)\right) = n_\varepsilon(x_j,\theta_i, t^m)
+\end{aligned}
+\end{equation}
+
+
+$$\rho_\varepsilon = \int_0^1n_\varepsilon(x,\theta) d\theta = \sum_{i=1}^M\int_{\theta_{i-1}}^{\theta_i} n_\varepsilon(x,\theta) d\theta$$
+
+\newpage
+\begin{equation}
+\begin{aligned}
+&-D(\theta)\Delta_x n_\varepsilon -\varepsilon^2\Delta_\theta n_\varepsilon = n_\varepsilon(K(x)-\rho_\varepsilon(x)),\\
+&\rho_\varepsilon = \int_0^1n_\varepsilon(x,\theta) d\theta
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}
+&2D(\theta_i)/\delta x^2n_\varepsilon(x_j, \theta_i, t^{m+1}) - D(\theta_i)\dfrac{n_\varepsilon(x_{j+1}, \theta_i, t_{m+1})  + n_\varepsilon(x_{j-1}, \theta_i, t_{m+1})}{\delta x^2}\\
+& + 2\varepsilon^2 /\delta \theta^2 n_\varepsilon(x_j,\theta_i t_{m+1})
+-\varepsilon^2 \dfrac{n_\varepsilon(x_j, \theta_{i+1}, t_{m+1}) + n_\varepsilon(x_j, \theta_{i-1}, t_{m+1})}{\delta\theta^2} \\
+& -n_\varepsilon(x_j, \theta_i, t_{m+1}) \left(K(x_j) - \rho_\varepsilon(x_j)\right) = 0
+\end{aligned}
+\end{equation}
+
+\bibliographystyle{model1-num-names}
+\bibliography{mybib}
+
+\end{document}

@@ -1,0 +1,212 @@
+\documentclass[preprint]{elsarticle}
+\usepackage{stmaryrd, amsmath, amsthm, mathrsfs}
+\usepackage{tabularx, subfigure, epsfig, graphicx, cases}
+\usepackage{color, CJK, anysize, enumerate}
+\usepackage[colorlinks,hyperindex,CJKbookmarks,linkcolor=blue,anchorcolor=blue,citecolor=green]{hyperref}
+\usepackage{booktabs, multirow}
+\biboptions{numbers, sort&compress}
+
+%\usepackage{jcomp}
+
+\newtheorem{prop}{Proposition}[section]
+\newtheorem{remark}{Remark}[section]
+
+\newcommand{\bmath}[1]{\mbox{\boldmath{$#1$}}}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\bes}{\begin{equation*}}
+\newcommand{\ees}{\end{equation*}}
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}
+
+\def\bX{\mathbf{X}}
+\def\bn{\mathbf{n}}
+\def\p{\partial}
+\def\bth{\bar{\theta}}
+\def\btau{\bmath{\tau}}
+\def\barp{\bar{p}}
+\def\subFS{\scriptscriptstyle{FS}}
+\def\subVS{\scriptscriptstyle{VS}}
+\def\wgamma{\widetilde{\gamma}}
+
+\numberwithin{equation}{section}
+\renewcommand{\theequation}{\arabic{section}.\arabic{equation}}
+
+\begin{document}
+
+\begin{frontmatter}
+\title{}
+%\author[1]{Weijie Huang}
+%\cortext[cor1]{Corresponding author at: School of Mathematics and Statistics, Beijing Jiaotong University, Beijing 100044, China.}
+%\ead{wjhuang@bjtu.edu.cn}
+%
+%\address[1]{School of Mathematics and Statistics, Beijing Jiaotong University, Beijing 100044, China}
+
+\begin{abstract}
+
+\end{abstract}
+
+\end{frontmatter}
+%==================== Introduction ==================
+\section{}
+The equation of $n_\varepsilon (x,\theta)$
+\begin{equation}
+\begin{aligned}
+&-D(\theta)\Delta_x n_\varepsilon -\varepsilon^2\Delta_\theta n_\varepsilon = n_\varepsilon(K(x)-\rho_\varepsilon(x)),\\
+&\rho_\varepsilon = \int_0^1n_\varepsilon(x,\theta) d\theta
+\end{aligned}
+\end{equation}
+Set $n_\varepsilon(x,\theta) = W_\varepsilon(x,\theta) e^{u(\theta)/\varepsilon}$, then
+\begin{equation}
+\begin{aligned}
+&\nabla_x n_\varepsilon = \nabla_x W_\varepsilon ~e^{u/\varepsilon},\\
+&\Delta_x n_\varepsilon = \Delta_x W_\varepsilon ~e^{u/\varepsilon},\\
+&\nabla_\theta n_\varepsilon = \nabla_\theta W_\varepsilon ~e^{u/\varepsilon} + W_\varepsilon ~e^{u/\varepsilon} \dfrac{\nabla_\theta u}{\varepsilon},\\
+&\Delta_\theta n_\varepsilon = \Delta_\theta W_\varepsilon ~e^{u/\varepsilon} + 2\nabla_\theta W_\varepsilon~e^{u/\varepsilon}~\dfrac{\nabla_\theta u}{\varepsilon} + W_\varepsilon e^{u/\varepsilon}\dfrac{|\nabla_\theta u|^2}{\varepsilon^2} + W_\varepsilon e^{u/\varepsilon}\dfrac{\Delta_\theta u}{\varepsilon}
+\end{aligned}
+\end{equation}
+and
+\begin{equation}
+\begin{aligned}
+&-D(\theta)\Delta_x W_\varepsilon ~e^{u/\varepsilon} -\varepsilon^2\left(\Delta_\theta W_\varepsilon ~e^{u/\varepsilon} + 2e^{u/\varepsilon}~\dfrac{\nabla_\theta W_\varepsilon\cdot \nabla_\theta u}{\varepsilon} + W_\varepsilon e^{u/\varepsilon}\dfrac{|\nabla_\theta u|^2}{\varepsilon^2} + W_\varepsilon e^{u/\varepsilon}\dfrac{\Delta_\theta u}{\varepsilon}\right)\\
+&= W_\varepsilon e^{u/\varepsilon}(K(x)-\rho_\varepsilon(x)),\\
+&-D(\theta)\Delta_x W_\varepsilon ~e^{u/\varepsilon} -\varepsilon^2\Delta_\theta W_\varepsilon ~e^{u/\varepsilon} - 2e^{u/\varepsilon}~\nabla_\theta W_\varepsilon\cdot \nabla_\theta u\varepsilon - W_\varepsilon e^{u/\varepsilon}|\nabla_\theta u|^2 - W_\varepsilon e^{u/\varepsilon}\Delta_\theta u\varepsilon\\
+&= W_\varepsilon e^{u/\varepsilon}(K(x)-\rho_\varepsilon(x)),\\
+\end{aligned}
+\end{equation}
+and
+\begin{equation}
+\begin{aligned}
+&-D(\theta)\Delta_x W_\varepsilon -\varepsilon^2\Delta_\theta W_\varepsilon - 2\varepsilon\nabla_\theta W_\varepsilon\cdot \nabla_\theta u - W_\varepsilon |\nabla_\theta u|^2 - W_\varepsilon \Delta_\theta u\varepsilon= W_\varepsilon (K(x)-\rho_\varepsilon(x)),\\
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{cases}
+\begin{aligned}
+&-D(\theta)\Delta_x W_\varepsilon -\varepsilon^2\Delta_\theta W_\varepsilon - 2\varepsilon\nabla_\theta W_\varepsilon\cdot \nabla_\theta u = W_\varepsilon (K(x)-\rho_\varepsilon(x)),\\
+& - |\nabla_\theta u|^2 - \varepsilon \Delta_\theta u=0
+\end{aligned}
+\end{cases}
+\end{equation}
+
+\begin{equation}
+\left\{
+\begin{aligned}
+&-D(\theta)\Delta_x W_\varepsilon -\varepsilon^2\Delta_\theta W_\varepsilon - 2\varepsilon\nabla_\theta W_\varepsilon\cdot \nabla_\theta u = W_\varepsilon (K(x)-\rho_\varepsilon(x)) + W_\varepsilon H,\\
+& - |\nabla_\theta u|^2 - \varepsilon \Delta_\theta u= -H
+\end{aligned}
+\right.
+\end{equation}
+
+The eigenvalue problem
+\begin{equation}
+\begin{aligned}
+&-D(\theta)\Delta_x W_\varepsilon - W_\varepsilon (K(x)-\rho_\varepsilon(x)) = W_\varepsilon H,\\
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\rho_\varepsilon(x) = \int_0^1 W_\varepsilon(x,\theta) e^{u(\theta)/\varepsilon} d\theta
+\end{equation}
+
+\begin{equation}
+\varepsilon \to 0, \qquad \rho_\varepsilon(x) \to \int_0^1 W_\varepsilon(x,\theta) \delta(\theta-\theta_m) d\theta = \bar{W},
+\end{equation}
+where $\bar{W}(x)$ satisfies
+$$-D(\theta_m) \Delta_x \bar{W}=\bar{W}(K(x)-\bar{W})$$
+
+1. initial value $W_\varepsilon(x,\theta), u(\theta)$;
+
+2. calculate $\rho_\varepsilon$;
+
+3. eigenvalue $H$;
+
+4. the second equation, calculate $u(\theta)$;
+
+5. the first equation, calculate $W_\varepsilon$.
+
+\newpage
+
+$$
+    \partial_t n_\varepsilon -D(\theta)\Delta_x n_\varepsilon -\varepsilon^2\Delta_\theta n_\varepsilon = n_\varepsilon(K(x)-\rho_\varepsilon(x))
+$$
+Set $n_\varepsilon(x,\theta, t) = W_\varepsilon(x,\theta, t) e^{u(\theta, t)/\varepsilon}$, then
+\begin{equation}
+\begin{aligned}
+&\partial_t n_\varepsilon = \partial_t W_\varepsilon e^{u/\varepsilon} + W_\varepsilon e^{u/\varepsilon}\dfrac{\partial_t u}{\varepsilon},\\
+&\nabla_x n_\varepsilon = \nabla_x W_\varepsilon ~e^{u/\varepsilon},\\
+&\Delta_x n_\varepsilon = \Delta_x W_\varepsilon ~e^{u/\varepsilon},\\
+&\nabla_\theta n_\varepsilon = \nabla_\theta W_\varepsilon ~e^{u/\varepsilon} + W_\varepsilon ~e^{u/\varepsilon} \dfrac{\nabla_\theta u}{\varepsilon},\\
+&\Delta_\theta n_\varepsilon = \Delta_\theta W_\varepsilon ~e^{u/\varepsilon} + 2\nabla_\theta W_\varepsilon~e^{u/\varepsilon}~\dfrac{\nabla_\theta u}{\varepsilon} + W_\varepsilon e^{u/\varepsilon}\dfrac{|\nabla_\theta u|^2}{\varepsilon^2} + W_\varepsilon e^{u/\varepsilon}\dfrac{\Delta_\theta u}{\varepsilon}
+\end{aligned}
+\end{equation}
+and
+\begin{equation}
+\begin{aligned}
+&\partial_t W_\varepsilon e^{u/\varepsilon} + W_\varepsilon e^{u/\varepsilon}\dfrac{\partial_t u}{\varepsilon}\\
+&-D(\theta)\Delta_x W_\varepsilon ~e^{u/\varepsilon} -\varepsilon^2\left(\Delta_\theta W_\varepsilon ~e^{u/\varepsilon} + 2e^{u/\varepsilon}~\dfrac{\nabla_\theta W_\varepsilon\cdot \nabla_\theta u}{\varepsilon} + W_\varepsilon e^{u/\varepsilon}\dfrac{|\nabla_\theta u|^2}{\varepsilon^2} + W_\varepsilon e^{u/\varepsilon}\dfrac{\Delta_\theta u}{\varepsilon}\right)\\
+&= W_\varepsilon e^{u/\varepsilon}(K(x)-\rho_\varepsilon(x)),\\
+&\partial_t W_\varepsilon e^{u/\varepsilon} + W_\varepsilon e^{u/\varepsilon}\dfrac{\partial_t u}{\varepsilon}\\
+&-D(\theta)\Delta_x W_\varepsilon ~e^{u/\varepsilon} -\varepsilon^2\Delta_\theta W_\varepsilon ~e^{u/\varepsilon} - 2e^{u/\varepsilon}~\nabla_\theta W_\varepsilon\cdot \nabla_\theta u\varepsilon - W_\varepsilon e^{u/\varepsilon}|\nabla_\theta u|^2 - W_\varepsilon e^{u/\varepsilon}\Delta_\theta u\varepsilon\\
+&= W_\varepsilon e^{u/\varepsilon}(K(x)-\rho_\varepsilon(x)),\\
+\end{aligned}
+\end{equation}
+and
+\begin{equation}
+\begin{cases}
+\begin{aligned}
+&\partial_t W_\varepsilon-D(\theta)\Delta_x W_\varepsilon -\varepsilon^2\Delta_\theta W_\varepsilon - 2\varepsilon\nabla_\theta W_\varepsilon\cdot \nabla_\theta u = W_\varepsilon (K(x)-\rho_\varepsilon(x)),\\
+& \dfrac{\partial_t u}{\varepsilon} - |\nabla_\theta u|^2 - \varepsilon \Delta_\theta u=0
+\end{aligned}
+\end{cases}
+\end{equation}
+so 
+\begin{equation}
+\begin{cases}
+\begin{aligned}
+&\partial_t W_\varepsilon-D(\theta)\Delta_x W_\varepsilon -\varepsilon^2\Delta_\theta W_\varepsilon - 2\varepsilon\nabla_\theta W_\varepsilon\cdot \nabla_\theta u = W_\varepsilon (K(x)-\rho_\varepsilon(x)) + W_\varepsilon H,\\
+& \dfrac{\partial_t u}{\varepsilon} - |\nabla_\theta u|^2 - \varepsilon \Delta_\theta u= -H
+\end{aligned}
+\end{cases}
+\end{equation}
+where $H$ and $\rho_\varepsilon$ are obtained by the eigenvalue problem
+\begin{equation}
+\begin{aligned}
+&-D(\theta)\Delta_x W_\varepsilon - W_\varepsilon (K(x)-\rho_\varepsilon(x)) = W_\varepsilon H,\\
+\end{aligned}
+\end{equation}
+and
+\begin{equation}
+\rho_\varepsilon(x) = \int_0^1 W_\varepsilon(x,\theta) e^{u(\theta)/\varepsilon} d\theta
+\end{equation}
+
+The step to solve the problem: 
+\begin{itemize}
+\item initial value $t=0$: $W_\varepsilon(x,\theta, 0), u(\theta, 0)$;
+
+\item calculate $\rho_\varepsilon(x, 0)$;
+
+\item solve the eigenvalue problem and obtain $H$;
+
+\item solve the second equation, obtain $u(\theta)$;
+
+\item solve the first equation, obtain $W_\varepsilon$. 
+\end{itemize}
+
+\subsection*{Discretization}
+1D: \begin{equation}
+\rho_\varepsilon(x_j) = \int_0^1 W_\varepsilon(x_j,\theta) e^{u(\theta)/\varepsilon} d\theta = \sum_{i=1}^M\int_{\theta_{i-1}}^{\theta_i} W_\varepsilon(x_j, \theta) e^{u(\theta)/\varepsilon} d\theta
+\end{equation}
+The choose of numerical integration? 
+
+The eigenvalue problem: Sturm-Liouville 
+
+
+
+
+\bibliographystyle{model1-num-names}
+\bibliography{mybib}
+
+\end{document}
