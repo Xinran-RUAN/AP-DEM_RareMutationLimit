@@ -1,4 +1,4 @@
-%% 网格参数   
+%% 网格   
 N_theta = 20; % theta方向网格步长1/Nth
 N_x = 20; % x方向网格步长1/Nx
 d_theta = 1 / N_theta;
