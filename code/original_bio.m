@@ -1,15 +1,15 @@
 function original_bio
 
 %% 网格参数  
-Nth = 10; % theta方向的网格点数
-Nx = 10; % x方向  
+Nth = 40; % theta方向的网格点数
+Nx = 20; % x方向  
 theta = linspace(0, 1, Nth +1); % 网格点theta
 theta(end) = [];  
 x = linspace(0, 1, Nx + 1); % 网格点x  
 x = x';     
 dtheta = theta(2) - theta(1);
 dx = x(2) - x(1);
-dt = 1e-2;   
+dt = 1e-1;   
 T = 50; 
 Ts = 1:50;
 ks = 1;
@@ -20,14 +20,14 @@ thinte = 0:0.001:1;
 [xxinte, ththinte] = meshgrid(x, thinte);
 
 %% 问题参数   
-epsilon = 1e-4;     
+epsilon = 1e-2;     
 D = 0.5 * sin(pi * theta - pi) + 1;  
 K = 1 + 20 * (1 - 4 * (x - 0.5).^2).^8;  
 figure(10)  
 plot(theta, D);     
 %% 初值w(x,theta,t),u(theta,t) 
 w = ones(Nx + 1, Nth); % theta 是周期边界条件，theta in [0, 1-dtheta]
-u = sin(pi * theta) - 1;
+u = sin(2 * pi * theta) - 1;
 ne = w .* exp(u/epsilon); % theta 是周期边界条件，theta in [0, 1-dtheta]
 t = 0; 
 
@@ -64,9 +64,9 @@ while t <= T
     rho = 0.001 * sum(neinte(:, 1:end-1), 2);
     
 %     %% 画图  
-%     figure(1);   
-%     plot(x, rho);
-%     axis([0 1 0 25]);   
+    figure(1);   
+    plot(x, rho);
+    % axis([0 1 0 25]);   
  
     %% solve the equation to obtain n(x_j,\theta_i,t_m+1)
     %%%系数矩阵   

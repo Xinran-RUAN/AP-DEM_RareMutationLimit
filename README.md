@@ -6,7 +6,7 @@ We aim to solve the model:
 $$
 \left\{
 \begin{aligned}
-&\varepsilon\partial_t n_\varepsilon -D(\theta)\Delta_x n_\varepsilon -\varepsilon^2\Delta_\theta n_\varepsilon = n_\varepsilon(K(x)-\rho_\varepsilon(x)),\\
+&\partial_t n_\varepsilon -D(\theta)\Delta_x n_\varepsilon -\varepsilon^2\Delta_\theta n_\varepsilon = n_\varepsilon(K(x)-\rho_\varepsilon(x)),\\
 &\rho_\varepsilon = \int_0^1n_\varepsilon(x,\theta) d\theta
 \end{aligned}
 \right.
@@ -85,7 +85,7 @@ $$
 The model now reads as 
 $$
 \begin{aligned}
-&\varepsilon\partial_t W_\varepsilon e^{u/\varepsilon} + \color{red}{W_\varepsilon e^{u/\varepsilon}\partial_t u}\\
+&\partial_t W_\varepsilon e^{u/\varepsilon} + \color{red}{W_\varepsilon e^{u/\varepsilon}\frac{\partial_t u}{\varepsilon}}\\
 &-D(\theta)\Delta_x W_\varepsilon ~e^{u/\varepsilon} -\varepsilon^2\left(\Delta_\theta W_\varepsilon ~e^{u/\varepsilon} + 2e^{u/\varepsilon}~\dfrac{\nabla_\theta W_\varepsilon\cdot \nabla_\theta u}{\varepsilon} + \color{red}{W_\varepsilon e^{u/\varepsilon}\dfrac{|\nabla_\theta u|^2}{\varepsilon^2} + W_\varepsilon e^{u/\varepsilon}\dfrac{\Delta_\theta u}{\varepsilon}}\right)\\
 & = W_\varepsilon e^{u/\varepsilon}(K(x)-\rho_\varepsilon(x)) \\
 & = W_\varepsilon e^{u/\varepsilon}(K(x)-\rho_\varepsilon(x)) + W_\varepsilon e^{u/\varepsilon} H^*(\theta) \color{red}{- W_\varepsilon e^{u/\varepsilon} H^*(\theta)}.
@@ -93,18 +93,19 @@ $$
 $$
 By properly separating the equation, we get
 $$
-	\partial_t u - |\nabla_\theta u|^2 - \varepsilon \Delta_\theta u = -H^*(\theta),
+	\partial_t u - \varepsilon|\nabla_\theta u|^2 - \varepsilon^2 \Delta_\theta u = -\varepsilon H^*(\theta),
 $$
 and 
 $$
-\varepsilon\partial_t W_\varepsilon-D(\theta)\Delta_x W_\varepsilon -\varepsilon^2\Delta_\theta W_\varepsilon - 2\varepsilon\nabla_\theta W_\varepsilon\cdot \nabla_\theta u = W_\varepsilon (K(x)-\rho_\varepsilon(x)) + H^*(\theta) W,
+\partial_t W_\varepsilon-D(\theta)\Delta_x W_\varepsilon -\varepsilon^2\Delta_\theta W_\varepsilon - 2\varepsilon\nabla_\theta W_\varepsilon\cdot \nabla_\theta u = W_\varepsilon (K(x)-\rho_\varepsilon(x)) + H^*(\theta) W,
 $$
 where $H^*(\theta)=H(\theta,\rho^*)$ is the approximation of $H(\theta, \rho_\varepsilon)$ with $\rho_\varepsilon = \int_0^1n_\varepsilon(x,\theta) d\theta $.
 
 ### Idea for A-P scheme
 For time evolution from $t_n$ to $t_{n+1}$:
 
-1.   
+1. To compute $\rho^n$ and $H^*$
+2. To update $u^{n+1}$ and $W^{n+1}$
 
 ## Numerical treatment for conservation laws and Hamilton-Jacobi equation
 
