@@ -101,9 +101,41 @@ $$
 $$
 where $H^*(\theta)=H(\theta,\rho^*)$ is the approximation of $H(\theta, \rho_\varepsilon)$ with $\rho_\varepsilon = \int_0^1n_\varepsilon(x,\theta) d\theta $.
 
+### Idea for A-P scheme
+For time evolution from $t_n$ to $t_{n+1}$:
 
+1.   
+
+## Numerical treatment for conservation laws and Hamilton-Jacobi equation
+
+Solutions of **H-J equations** 
+$$
+	\partial_t \phi + H(\nabla_x \phi) = 0, \quad \phi(x,0) = \phi_0(x),
+$$
+are **continuous** and, in the generic case, **form discontinuous derivatives in a finite time** even with smooth initial conditions.
+
+Solutions with this kind of discontinuity are not unique.
+Therefore, analogous to conservation laws, it is necessary to introduce the concept of the entropy-like condition to facilitate the selection of a unique solution, which leads to the so-called **viscosity solution**.
+
+For **convex Hamiltonians**, the viscosity solution is characterized by a **semiconcave stability condition**. Such a viscosity solution coincides with the limit solution obtained by the **vanishing viscosity method**. For **general Hamiltonians**, the definition of the viscosity solution and the question of well-posedness (in L∞) were formulated and systematically studied by Crandall, Evans, Lions, Souganidis, and many others.
+
+For one-dimensional H-J equations, there is a one-to-one correspondence with the conservation laws
+$$
+	\partial_t u + \sum_{i=1}^n \frac{\partial}{\partial x_i} f_i(u) = 0, \quad u(x,0) = u_0(x),
+$$
+by setting $u = \frac{\partial}{\partial x}\phi$. In the multidimensional case, however, this kind of one-to-one correspondence no longer exists. Instead,  satisfies a weakly hyperbolic systemof conservation laws [Kr, JiXi]. Instead, $\nabla_x\phi$ satisfies a weakly hyperbolic system of conservation laws. In view of these arguments, we can think of viscosity solutions of the H-J equations as primitives of entropy solutions for the conservation laws. Based on this idea, concepts used for conservation laws can be passed to H-J equations.
+
+For the vanishing viscosity approximations with viscosity amplitude $\varepsilon$, finite difference, finite element, and finite volume solutions based on grid-cells of size $\Delta x=\varepsilon$.
+
+For 1D conservation laws:  **The Nessyahu–Tadmor(NT) scheme**:
+1. To reconstruct a **piecewise-linear (MUSCL-type) interpolant** from the known cell averages at time $t_n$: $\overline{w}_j^n \to w(x, t_n)$
+2. To evolve the interpolant exactly in time, projected on the staggered cell-averages at the next time step, $t_{n+1}$, and approximated by the midpoint rule,
+resulting with the two-step **predictor-corrector** form: $\overline{w}_j^n \to w_j^{n+\frac12}$ by Taylor's expansion and get $\overline{w}_{j+\frac12}^n$.
+
+For 1D H-J equations: 
 
 
 ## References
 1. *Rare Mutations Limit of a Steady State Dispersal Evolution Model*, B. Perthame and P. E. Souganidis, Math. Model. Nat. Phenom., 11(2016), 154-166.
+2. *High-Resolution Nonoscillatory Central Schemes for Hamilton--Jacobi Equations*,  C.-T. Lin and E. Tadmor, SIAM J. Sci. Comput., 21(2000), 2163-2186.
 
