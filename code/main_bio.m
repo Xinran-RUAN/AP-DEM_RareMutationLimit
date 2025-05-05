@@ -22,7 +22,7 @@ K = 1 + 20 * (1 - 4 * (x - 0.5).^2).^8;
 
 %% 初值w(x,theta,t),u(theta,t) 以及初始化 H(\theta)
 W = ones(N_x+1, N_theta); % theta \in [0, 1-dtheta]
-u = 100*(sin(2*pi * theta) - 1);
+u = 1*(sin(2*pi * theta) - 1);
 H = zeros(1, N_theta);
 t = 0;    
 
