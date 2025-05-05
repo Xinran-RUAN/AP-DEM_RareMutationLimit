@@ -56,12 +56,12 @@ while t <= T
     end
     %% rho,积分，数值积分，随着epsilon的减小，
     %% 这个数值积分不晓得会不会有问题，精度也许达不到。rho与x有关，与theta无关      
- %   rho = dtheta * sum(ne(:, 1:Nth), 2);
+   rho = dtheta * sum(ne(:, 1:Nth), 2);
     %% 线性插值
-    ne_aux = [ne, ne(:, 1)];
-    neinte = interp2(xx, thth, ne_aux', xxinte, ththinte, 'spline');
-    neinte = neinte';
-    rho = 0.001 * sum(neinte(:, 1:end-1), 2);
+    % ne_aux = [ne, ne(:, 1)];
+    % neinte = interp2(xx, thth, ne_aux', xxinte, ththinte, 'spline');
+    % neinte = neinte';
+    % rho = 0.001 * sum(neinte(:, 1:end-1), 2);
     
 %     %% 画图  
     figure(1);   
@@ -81,9 +81,11 @@ while t <= T
     ne = reshape(ne_new, size(ne(2:Nx, :)));% 更新
     ne = [ne(1, :); ne; ne(end, :)];
     t = t+dt;    
+
+    figure(2)
+    ntheta = dx * (0.5*ne(1, :) + sum(ne(2:Nx, :), 1) + 0.5*ne(end, :));
+    plot(theta, ntheta);
 end      
-figure(2)
-ntheta = dx * (0.5*ne(1, :) + sum(ne(2:Nx, :), 1) + 0.5*ne(end, :));
-plot(theta, ntheta);
+
 end
 

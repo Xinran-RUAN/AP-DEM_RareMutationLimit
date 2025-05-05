@@ -51,7 +51,9 @@ A_con(end-N_x+2:end, 1:N_x-1) = A_sub;
 A_con(1:N_x-1, end-N_x+2:end) = A_sub;
 path = './data/';
 %% 时间演化
-while t <= T 
+while t <= T
+    W = W .* exp(max(u)/eps);
+    u = u - max(u);
     %% rho,积分，数值积分，随着epsilon的减小，
     %% 这个数值积分不晓得会不会有问题，精度也许达不到。rho与x有关，与theta无关
     %%直接算       
