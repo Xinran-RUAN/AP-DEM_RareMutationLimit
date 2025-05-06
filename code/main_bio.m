@@ -8,29 +8,29 @@ x = (0:dx:1)'; % 网格点x
 dt = 1e-1; %时间步长  
 T = 10000; % 终止时间
 Ts = 1:50; % 存储Ts时刻的数据
-ks = 1; % 与Ts有关
+ks = 1; % 与Ts有关  
   
 %% 插值准备
 [X, Theta] = meshgrid(x, [theta, 1]);
 theta_f = 0:0.001:1; 
 [X_f, Theta_f] = meshgrid(x, theta_f);
- 
-%% 问题参数  
-eps = 1e-5;       
+   
+%% 问题参数    
+eps = 1e-3;          
 D = 0.5 * sin(pi * theta - pi) + 1;     
 K = 1 + 20 * (1 - 4 * (x - 0.5).^2).^8;  
 
 %% 初值w(x,theta,t),u(theta,t) 以及初始化 H(\theta)
 W = ones(N_x+1, N_theta); % theta \in [0, 1-dtheta]
-u = 1*(sin(2*pi * theta) - 1);
+u = (sin(4*pi * theta) - 1);
 H = zeros(1, N_theta);
 t = 0;    
-
+ 
 %% 准备部分，不放在循环里
 %% 一个theta对应一个D，对应1个特征值，so, 要么循环，要么三阶张量形式
-% 待定吧
-beta = eps^2 * dt / d_theta^2;  
-beta2 = eps^2 * dt / d_theta^2;
+% 待定吧  
+beta = (eps^2 + 0.0) * dt / d_theta^2;  
+beta2 = (eps^2 + 0.0) * dt / d_theta^2;
 B = (1 + 2*beta2) * diag(ones(N_theta, 1), 0) +...
     - beta2 * diag(ones(N_theta-1, 1), 1) +...
     - beta2 *  diag(ones(N_theta-1, 1), -1);
@@ -70,7 +70,7 @@ while t <= T
 %     winte = winte';   
 %     rho = (theta_f(2)-theta_f(1)) * sum(winte(:, 1:end-1) .* exp(uinte(1:end-1)/eps), 2);
 %       
-    %% 画图   
+    %% 画图    
     figure(1);    
     plot(x, rho);
     title(['Plot of $\rho(x)$, time = ', num2str(t)], 'Interpreter', 'latex');
@@ -103,7 +103,8 @@ while t <= T
     pR = (u_plus - u) / d_theta; % 右差分 u_{j+1} - u_j
     pC = (u_plus - u_minus) / (2*d_theta);
     grad_sq = pL.^2 .* (pC >= 0) + pR.^2 .* (pC < 0);
-    grad_sq = (pL .* (pC>=0) + pR.*(pC<0)) .* pC;
+    grad_sq = min(pL.^2, pR.^2) .* (pL .* pR >= 0) + ...
+              pL .* 0 .* (pL .* pR < 0);
     % 二阶导用隐式，一阶导用迎风,隐式Euler
     u_new = B\(u + dt * eps * (grad_sq - H))';  
     
@@ -120,9 +121,13 @@ while t <= T
     dw_dtheta_backward = (W - w_theta_minus) / d_theta; % 左差分, dudtheta>0
     dw_dtheta_upwind = dw_dtheta_backward .* (dudtheta >= 0) +...
                      + dw_dtheta_forward .* (dudtheta <0);
-    
+    id1 = abs(dw_dtheta_backward) <= abs(dw_dtheta_forward);
+    id2 = abs(dw_dtheta_backward) > abs(dw_dtheta_forward);
+    dw_dtheta_upwind = dw_dtheta_backward .* id1 .* (dw_dtheta_backward .* dw_dtheta_forward > 0) +...
+                     + dw_dtheta_forward .* id2 .* (dw_dtheta_backward .* dw_dtheta_forward > 0) + ...
+                     + dw_dtheta_backward .* 0 .* (dw_dtheta_backward .* dw_dtheta_forward <= 0);
     coupling = 2 * eps * (dw_dtheta_upwind .* dudtheta);
-    
+      
     %%%系数矩阵
     A_diag2 = diag(K(2:N_x) - rho(2:N_x), 0); 
     
@@ -140,4 +145,8 @@ while t <= T
     W = [W(1, :); W; W(end, :)];
     t = t+dt;  
     
+    %% 还原ne
+    ne = W .* exp(u/eps);
+    ntheta = dx * (sum(ne(1:N_x, :), 1));
+    plot(theta, ntheta);
 end  

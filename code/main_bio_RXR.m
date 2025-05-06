@@ -6,7 +6,7 @@ theta = 0:d_theta:1-d_theta;
 dx = 1 / N_x;
 x = (0:dx:1)'; % 网格点x  
 dt = 1e-1; %时间步长  
-T = 50; % 终止时间
+T = 100000; % 终止时间
 Ts = 1:50; % 存储Ts时刻的数据
 ks = 1; % 与Ts有关
   
@@ -16,13 +16,14 @@ theta_f = 0:0.001:1;
 [X_f, Theta_f] = meshgrid(x, theta_f);
  
 %% 问题参数  
-eps = 1e-2;       
+eps = 1e-2;        
 D = 0.5 * sin(pi * theta - pi) + 1;     
 K = 1 + 20 * (1 - 4 * (x - 0.5).^2).^8;  
 
 %% 初值w(x,theta,t),u(theta,t) 以及初始化 H(\theta)
 W = ones(N_x+1, N_theta); % theta \in [0, 1-dtheta]
 u = 1*(sin(2 * pi * theta) - 1);
+ne = W.*exp(u/eps);
 H = zeros(1, N_theta);
 t = 0;    
 
@@ -52,23 +53,26 @@ A_con(1:N_x-1, end-N_x+2:end) = A_sub;
 path = './data/';
 %% 时间演化
 while t <= T
-    W = W .* exp(max(u)/eps);
-    u = u - max(u);
+%     W = W .* exp(max(u)/eps);
+%     u = u - max(u);
     %% rho,积分，数值积分，随着epsilon的减小，
     %% 这个数值积分不晓得会不会有问题，精度也许达不到。rho与x有关，与theta无关
     %%直接算       
     rho = d_theta * sum(W(:, 1:N_theta) .* exp(u(1:N_theta)/eps), 2);
-    %% 插值
-    % u_aux = [u, u(:, 1)];
+    %% 插值  
+    % u_aux = [u, u(:, 1)];  
     % w_aux = [W, W(:, 1)];
     % uinte = interp1([theta, 1], u_aux, theta_f, 'spline');
     % winte = interp2(X, Theta, w_aux', X_f, Theta_f, 'spline');
     % winte = winte';   
     % rho = (theta_f(2)-theta_f(1)) * sum(winte(:, 1:end-1) .* exp(uinte(1:end-1)/eps), 2);
-
+    %%
+     rho = d_theta * sum(ne(:, 1:N_theta), 2);
+  
     %% 画图   
     figure(1);    
     plot(x, rho);
+    axis([0 1 5 12]);
     title(['Plot of $\rho(x)$, time = ', num2str(t)], 'Interpreter', 'latex');
     %% 画图  
     figure(2);    
@@ -84,11 +88,15 @@ while t <= T
     Tri_C(end, end) = -1;
     for kk = 1: N_theta % 计算特征值
         C = - D(kk) ./ dx^2 .* Tri_C - diag(K(2:N_x) - rho(2: N_x));
-        H(kk) = eigs(C, 1, 'smallestreal');
+        [VV, H(kk)] = eigs(C, 1, 'smallstreal');
+        if min(VV) <0
+            VV;
+        end
     end  
-    
+     
     figure(3)
     plot(theta, H);
+    axis([0 1 -1 0])
     title(['Plot of $H(\theta)$, time = ', num2str(t)], 'Interpreter', 'latex');
 
     %% solve the second equation to obtain u(theta)，迎风格式？
@@ -136,6 +144,18 @@ while t <= T
     u = u_new'; % 更新  
     t = t+dt;  
     
+    %% solve the equation to obtain n(x_j,\theta_i,t_m+1)
+    %%%系数矩阵   
+    A_diag2 = diag(K(2:N_x) - rho(2:N_x), 0); 
+    A = A_con - dt * kron(diag(ones(N_theta, 1), 0), A_diag2);
+
+    % 右端项  
+    b = ne; 
+    b = reshape(b(2: N_x, :), [], 1);
+    %向前Euler       
+    ne_new = A \ b;               
+    ne = reshape(ne_new, size(ne(2:N_x, :)));% 更新
+    ne = [ne(1, :); ne; ne(end, :)];
 end  
 n = W .* exp(u / eps);
 ntheta = dx * (0.5*n(1, :) + sum(n(2:N_x, :), 1) + 0.5*n(end, :));

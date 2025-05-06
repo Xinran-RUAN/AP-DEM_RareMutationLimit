@@ -27,7 +27,7 @@ figure(10)
 plot(theta, D);     
 %% 初值w(x,theta,t),u(theta,t) 
 w = ones(Nx + 1, Nth); % theta 是周期边界条件，theta in [0, 1-dtheta]
-u = sin(2 * pi * theta) - 1;
+u = sin(2*pi * theta) - 1;
 ne = w .* exp(u/epsilon); % theta 是周期边界条件，theta in [0, 1-dtheta]
 t = 0; 
 
