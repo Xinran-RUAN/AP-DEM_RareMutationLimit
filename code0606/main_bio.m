@@ -19,7 +19,9 @@ eps = 1e-2;
 D = exp(-1 .* sin(pi .* theta).^2); % theta_m = 0.5;
 % D = exp(-1 .* (sin(pi * theta) + 0.5 * sin(2 * pi * theta)).^2); % theta_m \neq 0.5
 K = 1 + 20 * (1 - 4 * (x - 0.5).^2).^8;  
-mkdir('data');        
+if ~exist('data', 'dir')
+    mkdir('data');
+end
 path = './data/'; 
   
 %% 初值w(x,theta,t),u(theta,t) 以及初始化 H(\theta)
@@ -43,11 +45,11 @@ tol = 10^(-12);
 while t <= T    
     %% 存储数据 
     dt = dt0;       
-    if min(abs(t-Ts)) < dt/100
-        save(strcat(path, 'u_', num2str(eps), '_', num2str(t), '_', num2str(N_x), '_', num2str(N_theta), '.mat'), 'u');
-        save(strcat(path, 'W_', num2str(eps), '_', num2str(t), '_', num2str(N_x), '_', num2str(N_theta), '.mat'), 'W');
-        plot_all(x, theta, rho, t, dx, u, W, H, eps, N_x, 0)
-    end 
+    % if min(abs(t-Ts)) < dt/100
+    %     save(strcat(path, 'u_', num2str(eps), '_', num2str(t), '_', num2str(N_x), '_', num2str(N_theta), '.mat'), 'u');
+    %     save(strcat(path, 'W_', num2str(eps), '_', num2str(t), '_', num2str(N_x), '_', num2str(N_theta), '.mat'), 'W');
+    %     plot_all(x, theta, rho, t, dx, u, W, H, eps, N_x, 0)
+    % end 
     %% solve rho
     rho = solve_rho(u, W, x, theta, eps, d_theta, N_theta);
     
@@ -65,7 +67,10 @@ while t <= T
  
  %   err = V ./ W(2:end-1, :)
        
-    t = t+dt;       
+    t = t+dt;
+    if min(abs(t-1:T)) < dt/5        
+        disp(t)
+    end
    %% 画图     
 %    plot_all(x, theta, rho, t, dx, u, W, H, eps, N_x, 0)
     

@@ -14,6 +14,20 @@ grad_sq(1) = pR(1).^2;
 %     grad_sq = du.^2;
 % 二阶导用隐式，一阶导用迎风,隐式Euler
 u_new = B\(u + dt * (grad_sq - H))';
+%% for test - artificial u
+% N_theta = 7; % theta方向网格步长1/Nth
+% d_theta = 1 / N_theta;      
+% theta = 0:d_theta:1-d_theta;
+% H = (theta - 0.5).^2;
+% u_new = B\(u + dt * (grad_sq - H))';
+
+%%
+% plot(u_new(2:4) - u_new(end:-1:end-2)); hold on
+% plot(H(2:4) - H(end:-1:end-2),'r--'); hold off
+% pause(0.001)
+if abs(u_new(end-1)-u_new(3)) > 1e-6
+    pause(0.1)
+end
 
 u_new = u_new';
 end
