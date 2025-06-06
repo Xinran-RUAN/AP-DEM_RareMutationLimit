@@ -18,6 +18,7 @@ theta_f = 0:0.001:1;
 %% 问题参数  
 eps = 1e-2;        
 D = 0.5 * sin(pi * theta - pi) + 1;     
+
 K = 1 + 20 * (1 - 4 * (x - 0.5).^2).^8;  
 
 %% 初值w(x,theta,t),u(theta,t) 以及初始化 H(\theta)

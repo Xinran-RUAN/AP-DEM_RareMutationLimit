@@ -1,33 +1,48 @@
 function evolution_compare
-t = 50;
-Nx = 10;
-Nth = 10;
+close all
+t = 5;
+Nx = 7;  
+Nth = 7;
 theta = linspace(0, 1, Nth +1); % 网格点theta
 x = linspace(0, 1, Nx + 1); % 网格点x  
 x = x';  
-[xx, thth] = meshgrid(x, theta);
-epsilon = 1e-4;
+[X, Theta] = meshgrid(x, theta);
+eps = 1e-2;
 path = './data/';
-load(strcat(path, 'u_', num2str(epsilon), '_', num2str(t), '_', num2str(Nx), '_', num2str(Nth), '.mat'));
-load(strcat(path, 'w_', num2str(epsilon), '_', num2str(t), '_', num2str(Nx), '_', num2str(Nth), '.mat'));
+u = load(strcat(path, 'u_', num2str(eps), '_', num2str(t), '_', num2str(Nx), '_', num2str(Nth), '.mat'));
+W = load(strcat(path, 'w_', num2str(eps), '_', num2str(t), '_', num2str(Nx), '_', num2str(Nth), '.mat'));
+u = u.u;
+W = W.W;
 u = [u, u(1)];
-w = [w, w(:, 1)];
-thinte = 0:0.001:1; 
-xinte = 0:0.001:1;
-[xxinte, ththinte] = meshgrid(xinte, thinte);
+W = [W, W(:, 1)];
+theta_f = 0:0.001:1; 
+[X_f, Theta_f] = meshgrid(x, theta_f);
 
-uinte = interp1(theta, u, thinte, 'spline');
-winte = interp2(xx, thth, w', xxinte, ththinte, 'spline');
+u_inte = interp1(theta, u, theta_f, 'spline');
+W_inte = interp2(X, Theta, W', X_f, Theta_f, 'spline');
  
-ne = winte .* exp(uinte/epsilon);
-netheta = 0.001 * (0.5*ne(1, :) + sum(ne(2:end-1, :), 1) + 0.5*ne(end, :));
-plot(thinte, netheta);
+n_eps = W_inte' .* exp(u_inte/eps);
+n_theta = (x(2) - x(1)) * (0.5*n_eps(1, :) + sum(n_eps(2:end-1, :), 1) + 0.5*n_eps(end, :));
+plot(theta_f, n_theta);
 hold on
+
+[~, pos] = min(abs(theta_f'-theta), [], 1);  
+n_theta_0 = n_theta(pos);
+plot(theta, n_theta_0, '>');
+  
+n_nointe = W .* exp(u/eps);   
+n_theta_0 = (x(2) - x(1)) * (0.5 * n_nointe(1, :) + sum(n_nointe(2:end-1, :), 1) + 0.5 * n_nointe(end, :));
+plot(theta, n_theta_0, '--');
+xlabel('$\theta$', 'Interpreter', 'latex');
+ylabel('$\int_0^1 n^\varepsilon dx$', 'Interpreter', 'latex');
+
 path = './original_data/';
-load(strcat(path, 'ne_', num2str(epsilon), '_', num2str(t), '_', num2str(Nx), '_', num2str(Nth), '.mat'));
-ne = [ne, ne(:, 1)];
+t=49; 
+ne = load(strcat(path, 'ne_', num2str(eps), '_', num2str(t), '_', num2str(Nx), '_', num2str(Nth), '.mat'));
+ne = ne.ne; 
+ne = [ne, ne(:, 1)];     
 netheta = 1/Nx * (0.5*ne(1, :) + sum(ne(2:end-1, :), 1) + 0.5*ne(end, :));
-plot(theta, netheta);
-axis([0.35 0.65 0 1500])
+plot(theta, netheta); 
+axis([0 1 0 100])    
 end
 
