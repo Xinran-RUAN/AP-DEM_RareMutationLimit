@@ -9,14 +9,15 @@ dx = 1 / N_x;
 x = (0:dx:1)'; % 网格点x     
          
 dt0 = 1e-4; %时间步长              
-T = 100; % 终止时间      
-Ts = 1:1:100; % 存储Ts时刻的数据 
+T = 10; % 终止时间      
+Ts = 1:1:T; % 存储Ts时刻的数据 
 Con = 2;
 
 %% 问题参数           
 eps = 1e-2;                   
 %D = 0.5 * sin(pi * theta - pi) + 0.6; 
 D = exp(-1 .* sin(pi .* theta).^2); % theta_m = 0.5;
+D(2:4) = D(end:-1:end-2);
 % D = exp(-1 .* (sin(pi * theta) + 0.5 * sin(2 * pi * theta)).^2); % theta_m \neq 0.5
 K = 1 + 20 * (1 - 4 * (x - 0.5).^2).^8;  
 if ~exist('data', 'dir')
@@ -45,11 +46,11 @@ tol = 10^(-12);
 while t <= T    
     %% 存储数据 
     dt = dt0;       
-    % if min(abs(t-Ts)) < dt/100
-    %     save(strcat(path, 'u_', num2str(eps), '_', num2str(t), '_', num2str(N_x), '_', num2str(N_theta), '.mat'), 'u');
-    %     save(strcat(path, 'W_', num2str(eps), '_', num2str(t), '_', num2str(N_x), '_', num2str(N_theta), '.mat'), 'W');
-    %     plot_all(x, theta, rho, t, dx, u, W, H, eps, N_x, 0)
-    % end 
+    if min(abs(t-Ts)) < dt/100
+        % save(strcat(path, 'u_', num2str(eps), '_', num2str(t), '_', num2str(N_x), '_', num2str(N_theta), '.mat'), 'u');
+        % save(strcat(path, 'W_', num2str(eps), '_', num2str(t), '_', num2str(N_x), '_', num2str(N_theta), '.mat'), 'W');
+        plot_all(x, theta, rho, t, dx, u, W, H, eps, N_x, 0)
+    end 
     %% solve rho
     rho = solve_rho(u, W, x, theta, eps, d_theta, N_theta);
     
@@ -68,11 +69,11 @@ while t <= T
  %   err = V ./ W(2:end-1, :)
        
     t = t+dt;
-    if min(abs(t-1:T)) < dt/5        
-        disp(t)
-    end
+    % if min(abs(t-1:T)) < dt/5        
+    %     disp(t)
+    % end
    %% 画图     
-%    plot_all(x, theta, rho, t, dx, u, W, H, eps, N_x, 0)
+   % plot_all(x, theta, rho, t, dx, u, W, H, eps, N_x, 0)
     
 end   
 % kk = kk + 1;

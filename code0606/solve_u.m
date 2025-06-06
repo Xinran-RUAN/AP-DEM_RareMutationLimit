@@ -6,7 +6,7 @@ pL = (u_temp - u_minus) / d_theta; % ×ó²î·Ö u_j - u_{j-1}
 pR = (u_plus - u_temp) / d_theta; % ÓÒ²î·Ö u_{j+1} - u_j
 grad_sq = min(pL.^2, pR.^2) .* (pL .* pR >= 0) + ...
           pL .* 0 .* (pL .* pR < 0);
-grad_sq(1) = pR(1).^2;
+% grad_sq(1) = pR(1).^2;
 %    grad_sq1 = (Du(u) / d_theta).^2;
 %     pp = spline([theta, 1], [u, u(1)]);
 %     pp_der = fnder(pp, 1);
