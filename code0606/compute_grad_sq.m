@@ -6,4 +6,4 @@ pL = (u_temp - u_minus) / d_theta; % 左差分 u_j - u_{j-1}
 pR = (u_plus - u_temp) / d_theta; % 右差分 u_{j+1} - u_j
 grad_sq = min(pL.^2, pR.^2) .* (pL .* pR >= 0) + ...
           pL .* 0 .* (pL .* pR < 0);
-grad_sq(1) = pR(1).^2;
+% grad_sq(1) = pR(1).^2;

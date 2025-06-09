@@ -1,13 +1,13 @@
 function u_new = solve_u(u, u_temp, B, H, d_theta, dt, is_symmetric_B)
-grad_sq = compute_grad_sq(u_temp, d_theta);
+% grad_sq = compute_grad_sq(u_temp, d_theta);
 
 %    grad_sq1 = (Du(u) / d_theta).^2;
 %     pp = spline([theta, 1], [u, u(1)]);
 %     pp_der = fnder(pp, 1);
 %     du = ppval(pp_der, theta);
 %     grad_sq = du.^2;
-% ¶ş½×µ¼ÓÃÒşÊ½£¬Ò»½×µ¼ÓÃÓ­·ç,ÒşÊ½Euler
-RHS = u + dt * (grad_sq - H);
+% äºŒé˜¶å¯¼ç”¨éšå¼ï¼Œä¸€é˜¶å¯¼ç”¨è¿é£,éšå¼Euler
+% RHS = u + dt * (grad_sq - H);
 % if is_symmetric_B
 %     try 
 %         R = chol(B, 'lower');
@@ -19,25 +19,23 @@ RHS = u + dt * (grad_sq - H);
 % else
 %     u_new = B \ RHS';
 % end
-u_new = B \ RHS';
-%% fixed iteration for grad_sq
-% tol = 1e-14;
-% err = 1;
-% u_o = u_temp;
-% while err > tol
-%     grad_sq_o = compute_grad_sq(u_o, d_theta);
-%     RHS_o = u_temp + dt * (grad_sq_o - H);
-%     u_new_predict = B \ RHS_o';
-%     u_t = u_new_predict';
-%     grad_sq_n = compute_grad_sq(u_t, d_theta);
-%     RHS_n = u_temp + dt * (grad_sq_n - H);
-%     u_new = B \ RHS_n';
-%     u_o = u_new';
-%     err = max(abs(u_o - u_t));
-% end
+tol = 1e-14;
+err = 1;
+u_o = u_temp;
+while err > tol
+    grad_sq_o = compute_grad_sq(u_o, d_theta);
+    RHS_o = u_temp + dt * (grad_sq_o - H);
+    u_new_predict = B \ RHS_o';
+    u_t = u_new_predict';
+    grad_sq_n = compute_grad_sq(u_t, d_theta);
+    RHS_n = u_temp + dt * (grad_sq_n - H);
+    u_new = B \ RHS_n';
+    err = max(abs(u_new' - u_t));
+    u_o = u_new';
+end
 
 %% for test - artificial u
-% N_theta = 7; % theta·½ÏòÍø¸ñ²½³¤1/Nth
+% N_theta = 7; % thetaæ–¹å‘ç½‘æ ¼æ­¥é•¿1/Nth
 % d_theta = 1 / N_theta;      
 % theta = 0:d_theta:1-d_theta;
 % H = (theta - 0.5).^2;
