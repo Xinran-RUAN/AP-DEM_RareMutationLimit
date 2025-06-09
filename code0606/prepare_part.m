@@ -1,4 +1,4 @@
-function [B, Ap, Tri_C] = prepare_part(eps, dt, dx, d_theta, N_x, N_theta, D)
+function [B, Ap, Tri_C, is_symmetric_B] = prepare_part(eps, dt, dx, d_theta, N_x, N_theta, D)
 
 beta = eps * dt / d_theta^2;  
 B = (1 + 2 * beta) * diag(ones(N_theta, 1), 0) +...
@@ -6,6 +6,10 @@ B = (1 + 2 * beta) * diag(ones(N_theta, 1), 0) +...
             - beta * diag(ones(N_theta-1, 1), -1);
 B(1, N_theta) = - beta;
 B(N_theta, 1) = - beta;  
+
+sym_error_B = norm(B - B.', inf);
+tol_sym = 1e-14;
+is_symmetric_B = sym_error_B < tol_sym;
 
 alpha_x = dt .* D ./ dx^2;
 alpha_theta = eps^2 * dt / d_theta;

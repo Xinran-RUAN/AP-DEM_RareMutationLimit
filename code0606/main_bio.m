@@ -41,7 +41,7 @@ tol = 10^(-12);
 
 %% 时间演化    
 % for kk = 1: 1000
-   [B, Ap, Tri_C] = prepare_part(eps, dt0, dx, d_theta, N_x, N_theta, D);
+   [B, Ap, Tri_C, is_symmetric_B] = prepare_part(eps, dt0, dx, d_theta, N_x, N_theta, D);
 %    t = 0;
 while t <= T    
     %% 存储数据 
@@ -59,7 +59,7 @@ while t <= T
     H = solve_H(N_theta, N_x, D, Tri_C, K, rho);
       
     %% solve the second equation to obtain u(theta)
-    u_new = solve_u(u, u, B, H, d_theta, dt); 
+    u_new = solve_u(u, u, B, H, d_theta, dt, is_symmetric_B); 
     if norm(u-u_new, 2) < tol
         break;
     end     
