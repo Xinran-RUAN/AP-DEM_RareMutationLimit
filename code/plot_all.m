@@ -1,5 +1,5 @@
 function plot_all(x, theta, rho, t, dx, u, W, H, eps, N_x, err)
-figure(1);            
+figure(1);              
     plot(x, rho); 
     xlabel('$x$', 'Interpreter', 'latex');    
     title(['Plot of $\rho(x)$, time = ', num2str(t), ', eps = ', num2str(eps)], 'Interpreter', 'latex');
@@ -20,11 +20,11 @@ figure(1);
     set(gcf, 'Position', [870, 50, 420, 300])
    % axis([0 1 -1 2]);
     
-%     figure(5)
-%     plot([theta, 1], [W(N_x/2, :), W(N_x/2, 1)]);
-%     xlabel('$\theta$', 'Interpreter', 'latex');
-%     title(['Plot of $W(\theta)$, time = ', num2str(t), ', eps = ', num2str(eps)], 'Interpreter', 'latex');
-%     set(gcf, 'Position', [440, 430, 420, 300])
+    figure(5)
+    plot([theta, 1], [W(ceil(N_x/2), :), W(ceil(N_x/2), 1)]);
+    xlabel('$\theta$', 'Interpreter', 'latex');
+    title(['Plot of $W(\theta)$, time = ', num2str(t), ', eps = ', num2str(eps)], 'Interpreter', 'latex');
+    set(gcf, 'Position', [440, 430, 420, 300])
       
     %% »¹Ô­ne
     figure(4);    
