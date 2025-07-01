@@ -7,10 +7,10 @@ ds = 1e-2;
 s = 0:ds:1-ds;
 N = length(s);
 H_func = @(s) (s- 0.4).^2;
-H = H_func(s);
+H = H_func
 
 s_h = ds/2:ds:1-ds/2;
-H_h = H_func(s_h);
+H_h = 
 %% 矩阵构造
 MAT_D = Matrix_Laplacian1D_Periodic(N, ds);
 MAT_U = I + dt * eps * MAT_D;
