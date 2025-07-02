@@ -9,10 +9,16 @@ N = length(s);
 H_func = @(s) (s- 0.4).^2;
 H = H_func(s);
 
-s_h = ds/2:ds:1-ds/2;
-H_h = H_func(s_h);
 %% 矩阵构造
 MAT_D = Matrix_Laplacian1D_Periodic(N, ds);
-MAT_U = I + dt * eps * MAT_D;
-%% 右端项
-RHS = u_o + dt * ((u_s).^2 - H);
+MAT_U = speye(N) + dt * eps * MAT_D;
+
+%% 时间推进
+t = 0;
+while t < T
+     if t + dt > T
+        dt = T - t;
+    end
+    u = RK3_step(u, dx, dt, eps, H, MAT_U);
+    t = t + dt;
+end
