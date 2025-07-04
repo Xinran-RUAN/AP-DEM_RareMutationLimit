@@ -38,8 +38,8 @@ tol = 10^(-12);
 %% 准备部分，为了节省时间，不放在循环里
 [B, Ap, Tri_C] = prepare_part(eps, tau, d_x, d_theta, N_x, N_theta, D);
 % B 为求解u的系数矩阵的准备，A为求解W的系数矩阵的准备
-MAT_D = Matrix_Laplacian1D_Periodic(N_theta, ds);
-MAT_U = speye(N_theta) + dt * eps * MAT_D;
+MAT_D = Matrix_Laplacian1D_Periodic(N_theta, d_theta);
+MAT_U = speye(N_theta) + tau * eps * MAT_D;
 
 %% 时间演化    
 while t <= T     
@@ -57,8 +57,8 @@ while t <= T
     H = solve_H(N_theta, N_x, D, Tri_C, K, rho);
        
     %% solve the second equation to obtain u(theta)
-    % u_new = solve_u(u, u, B, H, d_theta, dt, theta, ol); 
-    u_new = solve_u_RXR(u, MAT_U, H, d_theta, dt); 
+     % u_new = solve_u(u, u, B, H, d_theta, dt, theta, ol); 
+   u_new = solve_u_RXR(u, MAT_U, H, d_theta, dt); 
     
     if norm(u-u_new, 2) < tol
         break;
@@ -68,11 +68,12 @@ while t <= T
          
     [W, u] = normalize_u(W, u, eps, theta);
 
+
     t = t+dt;   
     if abs(t-0.4) < 1e-7
         u;
     end  
    %% 画图     
 
-   %   plot_all(x, theta, rho, t, d_x, u, W, H, eps, N_x, 0)
+     % plot_all(x, theta, rho, t, d_x, u, W, H, eps, N_x, 0)
 end   

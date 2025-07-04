@@ -10,7 +10,7 @@ if ol == 0
     id3 = pL .* pR < 0;
     du = pL .* id1 + pR .* id2 + 0 .* id3;
     du(1) = pR(1);
-     du = weno5_diff(u, d_theta);
+     % du = weno5_diff(u, d_theta);
 else
     if ol == 1
         %% spline插值求导数
