@@ -1,10 +1,10 @@
 function pL = WENO5_left(u, dx)
     % 周期边界
-    u = [u(end-2:end), u, u(1:3)];
+    u = [u(end-2:end); u; u(1:3)];
     
     % 取 stencil
     N = length(u) - 6;
-    pL = zeros(1, N);
+    pL = zeros(N, 1);
     
     for j = 1:N
         vmm = u(j);
