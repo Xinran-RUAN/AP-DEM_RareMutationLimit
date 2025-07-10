@@ -1,8 +1,8 @@
 function original_bio
 clear 
 close all
-%% 网格参数      
-Nth = 100; % theta方向的网格点数
+%% 网格参数       
+Nth = 1000; % theta方向的网格点数
 Nx = 10; % x方向   
 theta = linspace(0, 1, Nth +1); % 网格点theta
 theta(end) = [];  
@@ -11,30 +11,28 @@ x = x';
 dtheta = theta(2) - theta(1);
 dx = x(2) - x(1);
 dt = 1e-3;   
-T = 1000; 
-Ts = 1:1000;
+T = 10; 
+Ts = 0.1:0.1:10;
 ks = 1;
+
+marker = 1;
 
 %% 问题参数   
 eps = 1e-2;     
 %D = 0.5 * sin(pi * theta - pi) + 1; 
-D = exp(-1 .* sin(pi .* theta).^2);
+D = initial_D(0.6, theta);
 % D = exp(-1 .* (sin(pi * theta) + 0.4 * sin(2 * pi * theta)).^2); % theta_m \neq 0.5
 K = 1 + 20 * (1 - 4 * (x - 0.5).^2).^8;  
 figure(10)   
 plot(theta, D);     
 %% 初值w(x,theta,t),u(theta,t) 
-%w = ones(N_x+1, N_theta); % theta \in [0, 1-dtheta]
-% u = (sin(pi * theta) - 1);
-%u = exp(1 .* (sin(pi * theta) + 0. * sin(2*pi*theta)).^2);
-w = exp(1 .* (sin(pi .* theta) + sin(pi .* x)).^2);
-u = 0 .* theta;       
-u = u - max(u);    
-ne = w .* exp(u/eps); % theta 是周期边界条件，theta in [0, 1-dtheta]
+[W, u] = initial_Wu(theta, x);
+[W, u] = normalize_u(W, u, eps, theta);  
+ne = W .* exp(u/eps); % theta 是周期边界条件，theta in [0, 1-dtheta]
 t = 0; 
 
-mkdir('original_data');        
-path = './original_data/'; 
+mkdir('original_data_nomid');        
+path = './original_data_nomid/'; 
 
 %% 某些准备部分，不放在循环里
 beta = eps^2 * dt / dtheta^2;
@@ -56,7 +54,7 @@ A_con(1:Nx-1, end-Nx+2:end) = A_sub;
 while t <= T    
          
     if abs(t-Ts(ks)) <10^(-7)
-        save(strcat(path, 'ne_', num2str(eps), '_', num2str(t), '_', num2str(Nx), '_', num2str(Nth), '.mat'), 'ne');
+        save(strcat(path, 'ne_', num2str(eps), '_', num2str(t), '_', num2str(Nx), '_', num2str(Nth), '_', num2str(marker), '.mat'), 'ne');
         ks = ks + 1;
         
         %% 画图
@@ -73,7 +71,7 @@ while t <= T
     A_diag2 = diag(K(2:Nx) - rho(2:Nx), 0); 
     A = A_con - dt * kron(diag(ones(Nth, 1), 0), A_diag2);
 
-    % 右端项  
+    % 右端项   
     b = eps * ne; 
     b = reshape(b(2: Nx, :), [], 1);
     %向前Euler       
@@ -81,11 +79,6 @@ while t <= T
     ne = reshape(ne_new, size(ne(2:Nx, :)));% 更新
     ne = [ne(1, :); ne; ne(end, :)];
     t = t+dt;    
-    
-%     netheta = n_int_x([ne, ne(:, 1)], x, [theta, 1]);
-%     trapz([theta, 1], netheta)
-%     t
-end        
+end           
 
 end
-

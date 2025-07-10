@@ -1,73 +1,75 @@
 clear  
-close all 
-
-%% 网格参数              
+close all        
+  
+%% ol = 1代表spline插值；否则代表未spline插值
+% spline插值的地方：u的方程中u对theta的一阶导；
+% W方程中，u对theta的一阶导，W对theta的一阶导
+ol = 0;            
+marker = 0;              
+%% 网格参数                   
 N_theta = 10; % theta方向网格步长1/Nth
 N_x = 10; % x方向网格步长1/Nx  
+ 
 d_theta = 1 / N_theta;      
 theta = 0:d_theta:1-d_theta;
-dx = 1 / N_x;  
-x = (0:dx:1)'; % 网格点x       
-             
-dt0 = 1e-3; %时间步长              
-T = 100; % 终止时间      
-Ts = 0.1:0.1:1000; % 存储Ts时刻的数据 
-Con = 2;    
-ol = 1;
 
-%% 问题参数           
-eps = 1e-2;                   
-%D = 0.5 * sin(pi * theta - pi) + 0.6; 
-D = exp(-1 .* sin(pi .* theta).^2); % theta_m = 0.5;
-% D = exp(-1 .* (sin(pi * theta) + 0.4 * sin(2 * pi * theta)).^2); % theta_m \neq 0.5
+d_x = 1 / N_x;  
+x = (0:d_x:1)'; % 网格点 x       
+ 
+%% 时间参数
+tau = 1e-3; %时间步长 
+T = 50; % 终止时间        
+Ts = 0.1:0.1:50; % 存储数据的时刻  
+
+%% 问题参数             
+eps = 1e-2;      
+D = initial_D(0.6, theta);
 plot(theta, D);   
 K = 1 + 20 * (1 - 4 * (x - 0.5).^2).^8;  
 mkdir('data');           
 path = './data/';       
     
 %% 初值w(x,theta,t),u(theta,t) 以及初始化 H(\theta)
-%W = ones(N_x+1, N_theta); % theta \in [0, 1-dtheta]
-% u = (sin(pi * theta) - 1);
-%u = exp(1 .* (sin(pi * theta) + 0. * sin(2*pi*theta)).^2);
-W = exp(1 .* (sin(pi .* theta) + sin(pi .* x)).^2);
-u = 0 .* theta;     
-u = u - max(u);             
+[W, u] = initial_Wu(theta, x);
+[W, u] = normalize_u(W, u, eps, theta);
 t = 0;    
 tol = 10^(-12);
 
 %% 准备部分，为了节省时间，不放在循环里
-%% 一个theta对应一个D，对应1个特征值，so, 要么循环，要么三阶张量形式
-%% B 为求解u的系数矩阵的准备，A为求解W的系数矩阵的准备
+[B, Ap, Tri_C] = prepare_part(eps, tau, d_x, d_theta, N_x, N_theta, D);
+% B 为求解u的系数矩阵的准备，A为求解W的系数矩阵的准备
 
 %% 时间演化    
-% for kk = 1: 1000
-   [B, Ap, Tri_C] = prepare_part(eps, dt0, dx, d_theta, N_x, N_theta, D);
-%    t = 0;
 while t <= T     
     %% 存储数据 
-    dt = dt0;           
+    dt = tau;           
     if min(abs(t-Ts)) < dt/100
-        save(strcat(path, 'u_', num2str(eps), '_', num2str(t), '_', num2str(N_x), '_', num2str(N_theta), '_', num2str(ol), '.mat'), 'u');
-        save(strcat(path, 'W_', num2str(eps), '_', num2str(t), '_', num2str(N_x), '_', num2str(N_theta), '_', num2str(ol), '.mat'), 'W');
-        plot_all(x, theta, rho, t, dx, u, W, H, eps, N_x, 0)
-    end   
+        save(strcat(path, 'u_', num2str(eps), '_', num2str(t), '_', num2str(N_x), '_', num2str(N_theta), '_', num2str(ol), '_', num2str(marker), '.mat'), 'u');
+        save(strcat(path, 'W_', num2str(eps), '_', num2str(t), '_', num2str(N_x), '_', num2str(N_theta), '_', num2str(ol), '_', num2str(marker), '.mat'), 'W');
+        plot_all(x, theta, rho, t, d_x, u, W, H, eps, N_x, 0)
+    end      
     %% solve rho  
-    rho = solve_rho(u, W, x, theta, eps, d_theta, N_theta);
+    rho = solve_rho(u, W, x, theta, eps, d_theta, N_theta, marker);
       
-    %% 特征值问题。系数矩阵C表示， D(theta),
-    %% 一个theta对应一个D(theta)，对应1个特征值，所以需要循环
+    %% 特征值问题。
     H = solve_H(N_theta, N_x, D, Tri_C, K, rho);
-      
+       
     %% solve the second equation to obtain u(theta)
     u_new = solve_u(u, u, B, H, d_theta, dt, theta, ol); 
+    
     if norm(u-u_new, 2) < tol
         break;
     end      
-    u = u_new;
+    u = u_new;    
     W = solve_w(u, W, W, K, rho, H, Ap, eps, d_theta, dt, N_x, N_theta, theta, ol);  
-       
-    t = t+dt;       
-   %% 画图     
-%    plot_all(x, theta, rho, t, dx, u, W, H, eps, N_x, 0)
-    
-end   
+         
+    [W, u] = normalize_u(W, u, eps, theta);
+
+    t = t+dt;   
+    if abs(t-0.4) < 1e-7
+        u;
+    end  
+   %% 画图       
+ 
+   %   plot_all(x, theta, rho, t, d_x, u, W, H, eps, N_x, 0)
+end    
