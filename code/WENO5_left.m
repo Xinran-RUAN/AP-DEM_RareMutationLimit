@@ -1,11 +1,12 @@
 function [pL, q0, q1, q2] = WENO5_left(u, dx)
     eps0 = 1e-6;
+    pR = zeros(size(u));
     N = length(u);
-    u = [u(end-2:end); u; u(1:3)];
-    q0 = zeros(N, 1);
-    q1 = zeros(N, 1);
-    q2 = zeros(N, 1);
-    pL = zeros(N, 1);
+    u = [u(end-2:end), u, u(1:3)];
+    % q0 = zeros(N, 1);
+    % q1 = zeros(N, 1);
+    % q2 = zeros(N, 1);
+
     for j = 1:N
         jj = j + 3;
         vmmm = u(jj-3);
@@ -59,7 +60,10 @@ function [pL, q0, q1, q2] = WENO5_left(u, dx)
             + 7 * (vp - v) ...
             - (vpp - vp)...
             ) / 12 ...
-            - w0 * (a - 2 * b + c) / 3 + (w2 - 1/2) * (b - 2 * c + d) / 6;
+            - (...
+            w0 * (a - 2 * b + c) / 3 ...
+            + (w2 - 1/2) * (b - 2 * c + d) / 6 ...
+            );
         pL(j) = pL(j) / dx;
     end
 end
