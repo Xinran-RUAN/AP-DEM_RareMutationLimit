@@ -1,8 +1,15 @@
 function evolution_compare
+<<<<<<< HEAD
+t = 2;   
+Nth = 15;    
+Nx = 10;       
+ol = 0; 
+=======
 t = 5;   
 Nth = 10;    
 Nx = 10;       
 ol = 0;  
+>>>>>>> d725b20c4e0dc455060136e6e0d3a79bba8f525a
 marker = 0;
 theta = linspace(0, 1, Nth +1); % 网格点theta
 x = linspace(0, 1, Nx + 1); % 网格点x  
@@ -17,10 +24,15 @@ else
     u = load(strcat(path, 'u_', num2str(eps), '_', num2str(t), '_', num2str(Nx), '_', num2str(Nth), '_', num2str(ol), '_', num2str(marker), '.mat'));
     W = load(strcat(path, 'w_', num2str(eps), '_', num2str(t), '_', num2str(Nx), '_', num2str(Nth), '_', num2str(ol), '_', num2str(marker), '.mat'));
 end
+<<<<<<< HEAD
+u = u.u;  
+W = W.W;    
+=======
 u = u.u;
 W = W.W; 
+>>>>>>> d725b20c4e0dc455060136e6e0d3a79bba8f525a
 [u_inte, W_inte] = uW_spline_theta(u, W, x, theta, theta_f);
-
+ 
 n_eps = W_inte .* exp(u_inte/eps);
 n_theta = (x(2) - x(1)) * (0.5*n_eps(1, :) + sum(n_eps(2:end-1, :), 1) + 0.5*n_eps(end, :));
 % n_theta = n_int_x(n_eps, x, theta_f);
@@ -48,7 +60,11 @@ ylabel('$\int_0^1 n^\varepsilon dx$', 'Interpreter', 'latex');
 
 %% 原始问题的解
 path = './original_data_nomid/';
+<<<<<<< HEAD
+t = 1.8;
+=======
 t = 3;
+>>>>>>> d725b20c4e0dc455060136e6e0d3a79bba8f525a
 Nth = 1000;      
 Nx = 10; 
 theta = linspace(0, 1, Nth +1); % 网格点theta
