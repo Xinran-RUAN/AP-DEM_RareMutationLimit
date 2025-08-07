@@ -133,7 +133,14 @@ For 1D conservation laws:  **The Nessyahu–Tadmor(NT) scheme**:
 2. To evolve the interpolant exactly in time, projected on the staggered cell-averages at the next time step, $t_{n+1}$, and approximated by the midpoint rule,
 resulting with the two-step **predictor-corrector** form: $\overline{w}_j^n \to w_j^{n+\frac12}$ by Taylor's expansion and get $\overline{w}_{j+\frac12}^n$.
 
+### Codes for equation of u
 For 1D H-J equations: 
+We tried to use **monotone schemes** with first order derivatives replaced by approximations reconstructed via **WENO5**.
+
+## Theoretical results
+**AP property of u**: 
+We firstly needs to show $u_varepsilon$ is uniformly in ε Lipschitz continuous.
+
 
 
 ## References
