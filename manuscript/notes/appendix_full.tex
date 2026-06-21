@@ -1,0 +1,577 @@
+\documentclass[11pt]{article}
+\topmargin=-1.0cm
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{color}
+\usepackage[margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{booktabs}
+
+% ******************************* Author Macros *******************************
+
+\newcommand{\pl}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\bu}{{\bf u} }
+\newcommand{\p}{\partial}
+\newcommand{\og}{\omega}
+\newcommand{\Og}{\Omega}
+\newcommand{\fl}[2]{\frac{#1}{#2}}
+\newcommand{\dt}{\delta}
+\newcommand{\nn}{\nonumber}
+\newcommand{\ap}{\alpha}
+\newcommand{\bt}{\beta}
+\newcommand{\tht}{\theta}
+\newcommand{\kp}{\kappa}
+\newcommand{\Dt}{\Delta}
+\renewcommand{\theequation}{\arabic{section}.\arabic{equation}}
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\ba}{\begin{array}}
+\newcommand{\ea}{\end{array}}
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+\newcommand{\beas}{\begin{eqnarray*}}
+\newcommand{\eeas}{\end{eqnarray*}}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{remark}{Remark}[section]
+\newtheorem{assumption}{Assumption}[section]
+\newcommand{\bx}{{\bf x} }
+\newcommand{\gm}{\gamma}
+\newcommand{\vep}{\varepsilon}
+\newcommand{\T}{\mathbb T}
+\newcommand{\dT}{d_{\mathbb T}}
+
+% *****************************************************************************
+
+\title{Appendix deleted}
+\begin{document}
+\date{}
+\maketitle
+
+\section{Numerical Hamiltonians and one-sided derivative reconstruction}\label{app:hamiltonian_weno}
+
+For the monotone theory in Section~3, the numerical Hamiltonian \(\widehat H(a,b)\) is assumed to be consistent with \(-p^2\), nondecreasing in its first argument, and nonincreasing in its second argument.  Two standard choices are the Lax--Friedrichs Hamiltonian
+\begin{equation}\label{eq:app_LF_H_new}
+    \widehat H_{\rm LF}(a,b)
+    =-\left(\frac{a+b}{2}\right)^2+\frac{\alpha}{2}(a-b),
+\end{equation}
+where \(\alpha\) is chosen no smaller than the relevant characteristic speed, and the Godunov Hamiltonian
+\begin{equation}\label{eq:app_Godunov_H_new}
+    \widehat H_G(a,b)=-(a^-)^2-(b^+)^2,
+    \qquad
+    a^-:=\min\{a,0\},
+    \qquad
+    b^+:=\max\{b,0\}.
+\end{equation}
+The stationary phase estimate in Proposition~\ref{prop:stationary_phase_estimate} uses \(\widehat H_G\).
+
+Some numerical runs use a high-order one-sided WENO reconstruction for the derivatives entering the Hamiltonian.  This is an implementation option, not the monotone Hamiltonian used in the proof.  For a periodic grid function \(u_k\), define the left-biased quantities
+\[
+    a=u_{k-3}-2u_{k-2}+u_{k-1},\quad
+    b=u_{k-2}-2u_{k-1}+u_k,
+\]
+\[
+    c=u_{k-1}-2u_k+u_{k+1},\quad
+    d=u_k-2u_{k+1}+u_{k+2}.
+\]
+Set
+\[
+    I_0=13(a-b)^2+3(a-3b)^2,
+    \quad
+    I_1=13(b-c)^2+3(b+c)^2,
+\]
+\[
+    I_2=13(c-d)^2+3(3c-d)^2,
+\]
+and
+\[
+    \alpha_0=\frac{1}{(\epsilon_0+I_0)^2},
+    \quad
+    \alpha_1=\frac{6}{(\epsilon_0+I_1)^2},
+    \quad
+    \alpha_2=\frac{3}{(\epsilon_0+I_2)^2},
+    \quad
+    \omega_r=\frac{\alpha_r}{\alpha_0+\alpha_1+\alpha_2}.
+\]
+The left derivative reconstruction used in the implementation is
+\begin{equation}\label{eq:weno_left_derivative_new}
+\begin{aligned}
+    p_k^-=\frac{1}{\Delta\theta}
+    \bigg[&\frac{-(u_{k-1}-u_{k-2})+7(u_k-u_{k-1})+7(u_{k+1}-u_k)-(u_{k+2}-u_{k+1})}{12} \\
+    &-\frac{\omega_0}{3}(a-2b+c)
+    -\frac{\omega_2-1/2}{6}(b-2c+d)
+    \bigg].
+\end{aligned}
+\end{equation}
+The right-biased derivative \(p_k^+\) is obtained by applying the same formula to the reversed stencil.  Equivalently, with
+\[
+    a^+=u_{k+3}-2u_{k+2}+u_{k+1},\quad
+    b^+=u_{k+2}-2u_{k+1}+u_k,
+\]
+\[
+    c^+=u_{k+1}-2u_k+u_{k-1},\quad
+    d^+=u_k-2u_{k-1}+u_{k-2},
+\]
+and the corresponding weights \(\omega_0^+,\omega_2^+\),
+\begin{equation}\label{eq:weno_right_derivative_new}
+\begin{aligned}
+    p_k^+=\frac{1}{\Delta\theta}
+    \bigg[&\frac{-(u_{k-1}-u_{k-2})+7(u_k-u_{k-1})+7(u_{k+1}-u_k)-(u_{k+2}-u_{k+1})}{12} \\
+    &+\frac{\omega_0^+}{3}(a^+-2b^++c^+)
+    +\frac{\omega_2^+-1/2}{6}(b^+-2c^++d^+)
+    \bigg].
+\end{aligned}
+\end{equation}
+The WENO option then uses a Roe-type entropy-fix numerical Hamiltonian for \(H(p)=-p^2\) with the reconstructed values \((p_k^+,p_k^-)\).  Since this high-order reconstruction is not monotone in the sense assumed in Section~3, the numerical experiments report it separately from the monotone Godunov/Lax--Friedrichs choices when needed.
+
+\section{Conservative fluxes for the split amplitude equation}\label{app:fluxes_new}
+
+The continuous conservative flux in the split amplitude equation is
+\[
+    F=-W\partial_\theta u.
+\]
+On a uniform periodic trait grid, write
+\[
+    D_\theta\widehat F(W,u)_{j,k}
+    =\frac{\widehat F_{j,k+1/2}-\widehat F_{j,k-1/2}}{\Delta\theta},
+    \qquad
+    a_{k+1/2}=-\frac{u_{k+1}-u_k}{\Delta\theta}.
+\]
+The upwind flux is
+\begin{equation}\label{eq:app_upwind_flux_new}
+    \widehat F^{\rm up}_{j,k+1/2}
+    =a_{k+1/2}^+ W_{j,k}+a_{k+1/2}^- W_{j,k+1},
+    \qquad
+    a^+=\max\{a,0\},
+    \qquad
+    a^-=\min\{a,0\}.
+\end{equation}
+A Lax--Friedrichs flux is
+\begin{equation}\label{eq:app_LF_flux_new}
+    \widehat F^{\rm LF}_{j,k+1/2}
+    =\frac{1}{2}a_{k+1/2}(W_{j,k}+W_{j,k+1})
+    -\frac{1}{2}\alpha_{k+1/2}(W_{j,k+1}-W_{j,k}),
+    \qquad
+    \alpha_{k+1/2}\ge |a_{k+1/2}|.
+\end{equation}
+Both fluxes are conservative in the periodic trait variable.  The upwind flux also satisfies the quasi-positivity condition used in Lemma~\ref{lem:positivity_W}.
+
+
+
+
+
+
+\section{Scalar mass-balance correction}
+\label{app:mass_correction}
+
+A detailed algebraic form of the scalar mass-balance correction used in the
+fully discrete method is provided here.  
+All spatial integrals below are understood in the discrete sense and may be
+evaluated by any consistent spatial quadrature used in the fully discrete
+scheme.
+The correction is based on the mass identity
+\[
+    \varepsilon \frac{d}{dt}\int_\Omega \rho(x,t)\,dx
+    =
+    \int_\Omega \rho(x,t)\bigl(K(x)-\rho(x,t)\bigr)\,dx .
+\]
+Let \(\widetilde W^{n+1}\), \(\widetilde u^{n+1}\), and
+\(\widetilde\rho^{n+1}\) denote the provisional amplitude, phase, and
+reconstructed spatial marginal after one time step.  The correction is defined
+by
+\[
+    W^{n+1}=\lambda \widetilde W^{n+1},
+    \qquad
+    u^{n+1}=\widetilde u^{n+1},
+    \qquad
+    \lambda>0 .
+\]
+It follows that
+\[
+    \rho^{n+1}=\lambda\widetilde\rho^{n+1},
+    \qquad
+    n^{n+1}=\lambda\widetilde n^{n+1},
+    \qquad
+    P^{n+1}=\lambda\widetilde P^{n+1}.
+\]
+Thus the correction changes only the density scale and leaves the phase profile
+unchanged.
+
+
+For compactness, define
+\[
+    \widetilde M
+    =
+    \int_\Omega \widetilde\rho^{n+1}\,dx,
+    \qquad
+    \widetilde S
+    =
+    \int_\Omega K\widetilde\rho^{n+1}\,dx,
+    \qquad
+    \widetilde Q
+    =
+    \int_\Omega (\widetilde\rho^{n+1})^2\,dx,
+\]
+and
+\[
+    M^n
+    =
+    \int_\Omega \rho^n\,dx,
+    \qquad
+    R^n
+    =
+    \int_\Omega \rho^n(K-\rho^n)\,dx .
+\]
+If the trapezoidal discretization is applied in time, the correction factor
+\(\lambda\) is determined by
+\[
+    \varepsilon
+    \frac{\lambda\widetilde M-M^n}{\tau}
+    =
+    \frac12
+    \left[
+        R^n+\lambda\widetilde S-\lambda^2\widetilde Q
+    \right].
+\]
+Equivalently, \(\lambda\) is the positive root of
+\[
+    \mathcal A_{\rm TR}\lambda^2
+    +
+    \mathcal B_{\rm TR}\lambda
+    +
+    \mathcal C_{\rm TR}
+    =
+    0,
+\]
+where
+\[
+    \mathcal A_{\rm TR}
+    =
+    \frac{\tau}{2}\widetilde Q,
+    \qquad
+    \mathcal B_{\rm TR}
+    =
+    \varepsilon\widetilde M
+    -
+    \frac{\tau}{2}\widetilde S,
+    \qquad
+    \mathcal C_{\rm TR}
+    =
+    -\varepsilon M^n
+    -
+    \frac{\tau}{2}R^n .
+\]
+If a backward Euler discretization of
+the reaction term is applied,  \(\lambda\) is determined by
+\[
+    \varepsilon
+    \frac{\lambda\widetilde M-M^n}{\tau}
+    =
+    \lambda\widetilde S-\lambda^2\widetilde Q,
+\]
+or equivalently
+\[
+    \mathcal A_{\rm BE}\lambda^2
+    +
+    \mathcal B_{\rm BE}\lambda
+    +
+    \mathcal C_{\rm BE}
+    =
+    0,
+\]
+with
+\[
+    \mathcal A_{\rm BE}
+    =
+    \tau\widetilde Q,
+    \qquad
+    \mathcal B_{\rm BE}
+    =
+    \varepsilon\widetilde M
+    -
+    \tau\widetilde S,
+    \qquad
+    \mathcal C_{\rm BE}
+    =
+    -\varepsilon M^n .
+\]
+The positive root is selected in both cases to preserve positivity of the
+reconstructed density.
+
+
+When the provisional reconstruction already satisfies the discrete mass balance,
+the correction factor is close to one.  In the small mutation regime, however,
+a small mass inconsistency may lead to a visible error in the peak height of the
+trait marginal.  The scalar correction therefore acts as a mass-balance
+projection for the reconstructed density-level quantities.  It improves the
+stability of the total mass and the peak height without changing the
+phase-based peak location.
+
+
+
+\section{Density and trait-marginal reconstruction, gauge normalization, and dual trait grids}\label{app:reconstruction}
+
+The reconstruction operators used in the code act on the WKB variables and do
+not solve the original density equation.  The default safe reconstruction of
+\(\rho\) is the log-stabilized quadrature.  With
+\[
+    \ell_{j,k}=\log\bigl(\max\{W_{j,k},W_{\rm floor}\}\bigr)
+    +\frac{u_k}{\varepsilon},
+\]
+the code evaluates
+\[
+    \rho_j=\sum_k\omega_k\exp(\ell_{j,k})
+\]
+by a row-wise log-sum-exp formula.  This is algebraically identical to the
+composite quadrature
+\[
+    \rho_{j,Q}=\Delta\theta\sum_k W_{j,k}\exp(u_k/\varepsilon),
+\]
+but it avoids underflow and overflow when \(\varepsilon\) is small.  The
+max-gauge \eqref{eq:gauge_new} is applied after each WKB step.  It leaves
+\(n_{j,k}=W_{j,k}\exp(u_k/\varepsilon)\) unchanged and keeps
+\(\max_k u_k=0\).
+
+A Laplace reconstruction can be used near a nondegenerate phase maximizer.  Let
+\(k_*\) be a nodal maximizer of \(u_k\).  The periodic stencil is represented in
+local coordinates
+\[
+    z_{k_*-1}=-\Delta\theta,
+    \qquad
+    z_{k_*}=0,
+    \qquad
+    z_{k_*+1}=\Delta\theta,
+\]
+even when the stencil crosses the endpoint of \([0,1)\).  With
+\[
+    d_{\theta\theta}u_{k_*}
+    =\frac{u_{k_*+1}-2u_{k_*}+u_{k_*-1}}{(\Delta\theta)^2},
+\]
+the parabolic vertex is
+\begin{equation}\label{eq:laplace_vertex_new}
+    z_*=-\frac{\Delta\theta}{2}
+    \frac{u_{k_*+1}-u_{k_*-1}}{u_{k_*+1}-2u_{k_*}+u_{k_*-1}}.
+\end{equation}
+The reconstructed trait location is
+\(\theta_*=(\theta_{k_*}+z_*)\bmod 1\).  Interpolating \(W\) and \(u\)
+quadratically on this local stencil gives \(W(x_j,\theta_*)\) and
+\(u(\theta_*)\), and
+\begin{equation}\label{eq:laplace_rho_new}
+    \rho_j^{\rm Lap}
+    =W(x_j,\theta_*)\exp\left(\frac{u(\theta_*)}{\varepsilon}\right)
+    \left(\frac{2\pi\varepsilon}{|d_{\theta\theta}u_{k_*}|}\right)^{1/2}.
+\end{equation}
+In the implementation this expression is evaluated in logarithmic form.  If
+\(d_{\theta\theta}u_{k_*}\ge0\), the curvature is too small, or the interpolated
+amplitude is non-positive, the hybrid reconstruction falls back to the
+log-stabilized direct quadrature.
+
+The trait marginal is reconstructed differently from \(\rho\).  For WKB data,
+the code first forms the amplitude marginal
+\[
+    A_k=\int_\Omega W(x,\theta_k)\,dx
+\]
+and then works with
+\begin{equation}\label{eq:appendix_logP_new}
+    L_k=\log P_k=\frac{u_k}{\varepsilon}+\log\bigl(\max\{A_k,A_{\rm floor}\}\bigr).
+\end{equation}
+Thus interpolation is applied to \(L=\log P\), not to \(P\) itself.  The peak
+search uses a periodic WENO interpolation of \(L_k\) on a fine uniform search
+grid, followed by the three-point parabolic refinement \eqref{eq:laplace_vertex_new}
+applied to the reconstructed values on that search grid.  This is why the
+reported small-\(\varepsilon\) peak location is less sensitive to whether the
+true density peak lies between two coarse trait nodes.
+
+After the peak location \(\theta_*\) has been found, the code can reconstruct a
+local peak shape.  In the phase-amplitude form, it fits
+\[
+    u(\theta_*+z)\simeq \alpha_0+\alpha_1z+\alpha_2z^2,
+    \qquad
+    \log A(\theta_*+z)\simeq \beta_0+\beta_1z+\beta_2z^2
+\]
+on a small periodic stencil, optionally with weights that emphasize points near
+the peak.  Hence
+\[
+    \log P(\theta_*+z)
+    \simeq
+    \left(\frac{\alpha_0}{\varepsilon}+\beta_0\right)
+    +\left(\frac{\alpha_1}{\varepsilon}+\beta_1\right)z
+    +\left(\frac{\alpha_2}{\varepsilon}+\beta_2\right)z^2 .
+\]
+When the quadratic coefficient is negative, the fitted peak width is
+\begin{equation}\label{eq:appendix_peak_width_new}
+    \sigma_P\simeq \frac{1}{\sqrt{-2(\alpha_2/\varepsilon+\beta_2)}}.
+\end{equation}
+The reconstructed shape is then normalized by a prescribed mass,
+\begin{equation}\label{eq:appendix_mass_shape_new}
+    P_{\rm rec}(\theta)
+    =M_{\rm target}
+    \frac{\exp(\widehat L(\theta)-\max_\eta\widehat L(\eta))}
+    {\int_{\mathbb T}\exp(\widehat L(\eta)-\max_\xi\widehat L(\xi))\,d\eta},
+\end{equation}
+where \(M_{\rm target}\) is the solver-corrected mass when such a correction is
+available and otherwise the raw log-quadrature mass.  This mass normalization is
+what stabilizes the reconstructed peak height after the location and width have
+been determined.
+
+For the dual trait-grid implementation, let \(\Theta_u\) be the fine phase grid
+and \(\Theta_W\) the coarse amplitude grid.  The reconstruction first computes
+\[
+    W_U=I_{W\to u}W_c,
+\]
+where \(I_{W\to u}\) is a periodic interpolation operator, and then applies the
+log-stabilized quadrature on \(\Theta_u\):
+\[
+    \rho_j=\sum_{\theta_k\in\Theta_u}\omega_k
+    \exp\left(\log\bigl(\max\{(W_U)_{j,k},W_{\rm floor}\}\bigr)
+    +\frac{u_k}{\varepsilon}\right).
+\]
+The phase equation and the peak localization are therefore resolved on the fine
+one-dimensional grid, whereas the space-dependent amplitude is stored and
+advanced on the coarse grid.  Since \(W\) carries all spatial degrees of
+freedom, this reduction is especially useful when the spatial discretization is
+large or high-dimensional.
+
+
+\section{Density-compatible variant and a sufficient condition for the one-sided remainder bound}
+\label{app:density_compatible}
+
+We record a density-compatible variant of the semi-discrete WKB formulation.
+This variant is not needed in the statement of the main scheme, but it gives a
+concrete setting in which the weighted remainder condition in
+Assumption~\ref{ass:remainder} can be verified by discrete summation by parts.
+
+The phase equation is kept unchanged.  The amplitude equation is replaced by
+\begin{equation}
+\label{eq:density_compatible_W}
+\begin{aligned}
+&\varepsilon
+\frac{\mathrm d}{\mathrm dt}W_{j,k}^\varepsilon
+-
+D_k\delta_x^2W_{j,k}^\varepsilon
+-
+\varepsilon^2(E_k^\varepsilon)^{-1}
+\delta_\theta^2
+\bigl(W_{j,\cdot}^\varepsilon E_\cdot^\varepsilon\bigr)_k
+\\
+&\qquad =
+W_{j,k}^\varepsilon
+\bigl(
+K_j-\rho_{j,Q}^\varepsilon
++\mathcal H_k(\boldsymbol\rho_Q)
++\widehat H(D_\theta^-u_k^\varepsilon,D_\theta^+u_k^\varepsilon)
+-\varepsilon\delta_\theta^2u_k^\varepsilon
+\bigr),
+\end{aligned}
+\end{equation}
+where
+\[
+\delta_\theta^2
+\bigl(W_{j,\cdot}^\varepsilon E_\cdot^\varepsilon\bigr)_k
+=
+\frac{
+W_{j,k+1}^\varepsilon E_{k+1}^\varepsilon
+-2W_{j,k}^\varepsilon E_k^\varepsilon
++W_{j,k-1}^\varepsilon E_{k-1}^\varepsilon
+}{(\Delta\theta)^2}.
+\]
+Multiplying \eqref{eq:density_compatible_W} by \(E_k^\varepsilon\) and using
+the phase equation gives
+\begin{equation}
+\label{eq:density_compatible_n}
+\varepsilon\frac{\mathrm d}{\mathrm dt} n_{j,k}^\varepsilon
+-
+D_k\delta_x^2 n_{j,k}^\varepsilon
+-
+\varepsilon^2\delta_\theta^2 n_{j,k}^\varepsilon
+=
+\bigl(K_j-\rho_{j,Q}^\varepsilon\bigr)n_{j,k}^\varepsilon .
+\end{equation}
+Thus the reconstructed density satisfies a conservative semi-discrete analogue
+of the original density equation.  In the notation of
+\eqref{eq:semi_discrete_n}, the remainder is exactly
+\[
+    R_{j,k}^\varepsilon
+    =
+    \varepsilon^2\delta_\theta^2n_{j,k}^\varepsilon .
+\]
+
+Consequently, the weighted remainder satisfies
+\[
+    R_{j}^{\varepsilon,D}
+    =
+    \varepsilon^2\Delta\theta
+    \sum_k
+    \frac{\delta_\theta^2n_{j,k}^\varepsilon}{D_k}.
+\]
+Using periodic summation by parts in the trait variable, we obtain
+\[
+    R_{j}^{\varepsilon,D}
+    =
+    \varepsilon^2\Delta\theta
+    \sum_k
+    n_{j,k}^\varepsilon
+    \delta_\theta^2\left(\frac{1}{D_k}\right).
+\]
+Hence, for \(0<\varepsilon\le 1\),
+\[
+    \bigl(R_{j}^{\varepsilon,D}\bigr)_+
+    \le
+    C_{D,h} m_j^\varepsilon,
+    \qquad
+    C_{D,h}
+    =
+    \max_k
+    \left|
+    \delta_\theta^2\left(\frac{1}{D_k}\right)
+    \right|,
+\]
+where
+\[
+    m_j^\varepsilon
+    =
+    \Delta\theta\sum_k n_{j,k}^\varepsilon .
+\]
+This verifies Assumption~\ref{ass:remainder} with
+\(C_R=C_{D,h}\) and \(r_h=0\).  If \(D\) is smooth and a standard centered
+periodic difference is used, \(C_{D,h}\) remains bounded under regular
+trait-grid refinement.
+
+
+
+\section{Direct density solver and two-dimensional finite-element realization}\label{app:direct_2d}
+
+For comparison, the original density equation can be discretized by the old linear implicit update
+\begin{equation}\label{eq:direct_density_fully_new}
+    \varepsilon\frac{n_{j,k}^{n+1}-n_{j,k}^n}{\tau}
+    -D_k\delta_x^2n_{j,k}^{n+1}
+    -\varepsilon^2\delta_\theta^2n_{j,k}^{n+1}
+    =n_{j,k}^{n+1}(K_j-\rho_j^n),
+    \qquad
+    \rho_j^n=\Delta\theta\sum_k n_{j,k}^n.
+\end{equation}
+{\color{red} In the revised code, the direct density solver also accepts the Patankar reaction option
+\begin{equation}\label{eq:direct_density_patankar_new}
+    \varepsilon\frac{n_{j,k}^{n+1}-n_{j,k}^n}{\tau}
+    -D_k\delta_x^2n_{j,k}^{n+1}
+    -\varepsilon^2\delta_\theta^2n_{j,k}^{n+1}
+    =(K_j-\rho_j^n)_+n_{j,k}^n-(K_j-\rho_j^n)_-n_{j,k}^{n+1}.
+\end{equation}
+This option is used to match the positivity-oriented WKB update when direct and WKB runs are compared.} The same spatial and trait grids are used for the direct and WKB solvers in the one-dimensional comparison tests.
+
+For the two-dimensional spatial experiment, the spatial Laplacian and the eigenvalue problem are discretized by linear finite elements on a triangular mesh.  For each trait node \(\theta_k\), the discrete effective Hamiltonian is computed from the generalized eigenvalue problem
+\begin{equation}\label{eq:fem_H_new}
+    A_k(\rho_Q)N^{(k)}=H_k(\rho_Q)M N^{(k)},
+\end{equation}
+where \(M\) is the finite-element mass matrix and
+\begin{equation}\label{eq:fem_A_new}
+    (A_k)_{ab}
+    =D_k\int_\Omega \nabla\varphi_a\cdot\nabla\varphi_b\,dx
+    -\int_\Omega (K(x)-\rho_Q(x))\varphi_a\varphi_b\,dx.
+\end{equation}
+The Neumann boundary condition is natural in this finite-element formulation.  The phase equation remains one-dimensional in \(\theta\), and the amplitude equation is solved for all spatial finite-element degrees of freedom and trait nodes.
+\end{document}

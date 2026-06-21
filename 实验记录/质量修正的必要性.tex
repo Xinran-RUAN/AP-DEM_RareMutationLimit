@@ -1,0 +1,222 @@
+\documentclass[UTF8,a4paper,11pt]{ctexart}
+
+% 建议使用 XeLaTeX 编译
+\usepackage{geometry}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+ \usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+
+\geometry{left=2.4cm,right=2.4cm,top=2.3cm,bottom=2.3cm}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
+\linespread{1.18}
+
+\definecolor{mainblue}{RGB}{36,88,148}
+\definecolor{lightgray}{RGB}{246,246,246}
+\definecolor{midgray}{RGB}{120,120,120}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=mainblue,
+  urlcolor=mainblue
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\DocHeader}
+\rhead{第 \thepage 页，共 \pageref{LastPage} 页}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\setlist[enumerate]{leftmargin=2em,itemsep=0.35em,topsep=0.3em}
+\renewcommand{\arraystretch}{1.45}
+\setlength{\tabcolsep}{6pt}
+
+\newcommand{\blankline}{\par\vspace{0.35em}\noindent\rule{\linewidth}{0.4pt}\par}
+\newcommand{\blanklines}[1]{%
+  \par
+  \begingroup
+  \newcount\i
+  \i=0
+  \loop\ifnum\i<#1
+    \vspace{0.58em}\noindent\rule{\linewidth}{0.4pt}\par
+    \advance\i by 1
+  \repeat
+  \endgroup
+}
+\newcommand{\fieldline}[1]{\textbf{#1}\quad\rule{0.82\linewidth}{0.4pt}\par}
+\newcommand{\hint}[1]{{\small\color{midgray}#1}\par}
+\newcommand{\sectionbar}[1]{%
+  \vspace{0.7em}
+  \noindent\colorbox{lightgray}{\parbox{0.97\linewidth}{\textbf{#1}}}
+  \par\vspace{0.45em}
+}
+\newcommand{\basicinfo}[4]{%
+\noindent\begin{tabularx}{\textwidth}{@{}lX lX lX lX@{}}
+\textbf{#1} & \hrulefill & \textbf{#2} & \hrulefill & \textbf{#3} & \hrulefill & \textbf{#4} & \hrulefill
+\end{tabularx}
+\par\vspace{0.8em}
+}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\newcommand{\DocHeader}{数值实验记录}
+
+\title{\textbf{数值实验记录表}}
+\author{姓名} % 自行修改
+\date{日期} % 自行修改
+
+\begin{document}
+\maketitle
+
+\section{基本信息}
+\noindent\textbf{实验目的}\par \hint{一句话写明实验目的。}
+说明质量修正是必要的
+\vspace{1.0em}
+\noindent\textbf{主程序代码文件名}\par 
+\vspace{1.0em}
+\noindent\textbf{核心算法代码文件名}\par
+\vspace{1.0em}
+\noindent\textbf{其它}\par \hint{其它必要的说明}
+\vspace{1.0em}
+
+
+
+\section{基本设置}
+
+\noindent\textbf{模型方程}
+\hint{写清楚连续模型、优化问题或离散前的主要方程。重要公式可以直接写在下面。}
+求解如下模型：
+\begin{equation}
+\label{eq:app_density_compatible_n}
+    \varepsilon\frac{\mathrm d}{\mathrm dt}n_{j,k}^\varepsilon
+    -
+    D_k\delta_x^2 n_{j,k}^\varepsilon
+    -
+    \varepsilon^2\delta_\theta^2 n_{j,k}^\varepsilon
+    =
+    \bigl(K_j-\rho_{j,Q}^\varepsilon\bigr)n_{j,k}^\varepsilon .
+\end{equation}
+与其WKB形式：
+\begin{equation}\label{eq:semi_discrete_WKB_system}
+\left\{
+\begin{aligned}
+&\frac{\mathrm d}{\mathrm dt}u_k^\varepsilon
++
+\widehat H
+\left(
+D_\theta^-u_k^\varepsilon,
+D_\theta^+u_k^\varepsilon
+\right)
+-
+\varepsilon\delta_\theta^2u_k^\varepsilon
+=
+-\mathcal H_k\bigl(\boldsymbol\rho_Q(t)\bigr),
+\qquad
+k=1,\dots,K,
+\\[1mm]
+&\varepsilon
+\frac{\mathrm d}{\mathrm dt}W_{j,k}^\varepsilon
+-
+D_k\delta_x^2W_{j,k}^\varepsilon
+-
+\varepsilon^2\delta_\theta^2W_{j,k}^\varepsilon
++
+2\varepsilon
+\mathcal D_\theta
+\widehat{\mathcal F}(W^\varepsilon,u^\varepsilon)_{j,k}
+\\
+&\qquad =
+W_{j,k}^\varepsilon
+\bigl(
+K_j-\rho_{j,Q}^\varepsilon(t)
++\mathcal H_k(\boldsymbol\rho_Q(t))
+-2\varepsilon\delta_\theta^2u_k^\varepsilon
+\bigr),
+\qquad
+j=1,\dots,J,\quad k=1,\dots,K .
+\end{aligned}
+\right.
+\end{equation}
+
+对于两种模型，分别比较实用质量修正与不用质量修正的后处理的解。特别地，比较$P(\theta)=\int \, n \, dx$的形态. 
+\vspace{1.0em}
+
+\noindent\textbf{边界条件}
+\hint{写清楚边界条件类型及其在程序中的处理方式。}
+
+$\theta$ 周期边界；$x$ Dirichlet边界
+\vspace{1.0em}
+
+\noindent\textbf{算法或数值格式}
+\hint{例如梯度流、Newton 方法、半隐式格式、投影方法、有限差分格式、谱方法、有限元方法等。}
+\vspace{1.0em}
+
+\noindent\textbf{离散方法}
+\hint{分别说明空间离散、时间离散、非线性项处理、约束或归一化处理，以及必要的后处理方法。}
+对于小$\varepsilon$，在画图时用log变换后插值、Laplace质量计算与二次拟合技巧。WKB方法可以使用双网格计算。
+
+\vspace{1.0em}
+
+\noindent\textbf{其它}
+\hint{记录与模型或算法有关但不方便归入以上几类的内容。}
+\vspace{1.0em}
+
+
+\section{参数设置}
+
+\noindent\textbf{空间区域}\par
+\hint{写清楚计算区域，例如 $[a,b]$、$[a,b]\times[c,d]$ 或三维区域。}
+\vspace{1.0em}
+
+\noindent\textbf{空间网格数或空间步长}\par
+\hint{例如 $N=1000$，或 $\Delta x=0.01$。多维问题需分别写出各方向网格。}
+\vspace{1.0em}
+
+\noindent\textbf{时间步长}\par
+\hint{例如 $\tau=10^{-4}$。若使用自适应时间步长，应写明取值范围和调整规则。}
+\vspace{1.0em}
+
+\noindent\textbf{终止条件}\par
+\hint{例如终止时间、最大迭代步、残量阈值、能量变化阈值或其它停止准则。}
+\vspace{1.0em}
+
+\noindent\textbf{物理参数}\par
+\hint{写清楚所有主要参数及其取值。}
+\vspace{1.2em}
+
+\noindent\textbf{初值}\par
+\hint{写清楚初始函数、初始数据文件或初始扰动方式。}
+\vspace{1.0em}
+
+\noindent\textbf{边界条件}\par
+\hint{如周期、Neumann、Dirichlet、自然边界条件、无通量条件等。若已在基本设置中写过，这里可只写实际程序采用的设置。}
+\vspace{1.0em}
+
+\noindent\textbf{其它}\par
+\hint{包括随机种子、网格自适应参数、输出间隔、后处理参数等。}
+\vspace{1.0em}
+
+\section{实验结果与现象描述}
+\hint{放置实验结果（图片/表格），并简述实验现象和结论。}
+
+\vspace{2cm}
+
+
+\section{下一步}
+\hint{简述现有问题与下一步工作思路。如没有可以不写。}
+
+\vspace{2cm}
+
+\section{附录}
+\hint{附上完整的代码文件包与必要的数据文件名，简述代码结构。}
+
+
+\end{document}

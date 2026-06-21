@@ -1,0 +1,334 @@
+--- /tmp/run_wkb_timeap_1d.m.bak	2026-05-27 15:14:35.294537132 +0000
++++ +src/run_wkb_timeap_1d.m	2026-05-27 15:16:08.480919671 +0000
+@@ -34,6 +34,11 @@
+ historyEverySteps = local_every_steps(par, 'historyEverySteps', 'historyEveryTime', 0.5);
+ 
+ history = [];
++% 中间输出控制器。实验版 time-AP/projective 计算通常很慢，
++% 如果只在最终时刻保存，一旦中途停止就无法检查前面的计算。
++% 因此这里维护 full snapshot、latest checkpoint 和 history checkpoint 三类输出。
++saveCtl = local_intermediate_save_init(par, tag);
++
+ t = 0;
+ step = 0;
+ residual = Inf;
+@@ -113,6 +118,14 @@
+         lastPlotState = local_make_plot_state(W, u, nNow, rhoNow, HNow, Kx, op, par, t, step, residual, dg);
+     end
+ 
++    % 已接受的宏步结束后保存中间结果。这里保存的是当前 WKB 状态，
++    % 不保存被拒绝的 trial step，也不改变数值格式。
++    [saveCtl, didSaveIntermediate] = local_maybe_save_intermediate(saveCtl, par, tag, ...
++        t, step, W, u, nNow, rhoNow, HNow, D, Kx, grid, op, residual, history, dg, resInfo, dtInfo, stepInfo);
++    if didSaveIntermediate && par.verbose && local_get_bool(par,'printIntermediateSaveMessage',false)
++        fprintf('[WKB-1D] 已保存中间结果: step=%d, t=%.6g\n', step, t);
++    end
++
+     prog = utils.progress_update(prog, step, t, residual, lastInfo);
+ 
+     if lp.enabled && ~isempty(fieldnames(lastPlotState)) && ...
+@@ -159,6 +172,17 @@
+     diagInfo.failureReason = '';
+ end
+ 
++
++% 无论正常结束、达到终止条件、失败退出，最后都补写一次 latest checkpoint。
++% 这样即使没有跑到 par.T，也能在输出目录中找到最近状态。
++try
++    [saveCtl, ~] = local_force_save_latest(saveCtl, par, tag, ...
++        t, step, W, u, n, rho, H, D, Kx, grid, op, residual, history, diagInfo, struct(), struct(), struct()); %#ok<NASGU>
++catch ME
++    warning('run_wkb_timeap_1d:FinalCheckpointFailed', ...
++        '最终 checkpoint 保存失败：%s', ME.message);
++end
++
+ result = struct('W',W,'u',u,'n',n,'rho',rho,'H',H,'D',D,'Kx',Kx,'grid',grid, ...
+                 'op',op,'par',par,'t',t,'step',step,'residual',residual, ...
+                 'history',history,'diagnostics',diagInfo,'tag',tag,'variant',variant, ...
+@@ -377,6 +401,208 @@
+ info.forceHistory = 1;
+ end
+ 
++
++%==========================================================================
++% 中间结果保存工具
++%==========================================================================
++function saveCtl = local_intermediate_save_init(par, tag)
++%LOCAL_INTERMEDIATE_SAVE_INIT 初始化中间输出控制器。
++%
++%  1. full snapshot：保存到 outdir/snapshots/，文件名包含 step 和 t，
++%     适合保留若干中间时刻用于后处理。
++%  2. latest checkpoint：保存到 outdir/latest_checkpoint.mat，每次覆盖，
++%     适合中途停止后读取最近状态。
++%  3. history checkpoint：保存到 outdir/history_checkpoint.mat，只含 history
++%     和摘要，文件较小，适合快速查看 residual 与 thetaWKB 曲线。
++%
++%  这些保存操作只记录当前 WKB 状态，不改变数值格式。
++
++saveCtl = struct();
++saveCtl.tag = tag;
++saveCtl.outdir = utils.ensure_dir(par.outdir);
++saveCtl.snapshotDir = utils.ensure_dir(fullfile(par.outdir, local_get_string(par,'snapshotSubdir','snapshots')));
++
++saveCtl.snapshotEnabled = local_get_bool(par,'storeSnapshots',false) || ...
++                          local_get_bool(par,'saveIntermediateSnapshots',false);
++if isfield(par,'saveIntermediate') && ~isempty(par.saveIntermediate)
++    saveCtl.snapshotEnabled = local_get_bool(par,'saveIntermediate',saveCtl.snapshotEnabled);
++end
++saveCtl.checkpointEnabled = local_get_bool(par,'saveLatestCheckpoint',true);
++saveCtl.historyEnabled = local_get_bool(par,'saveHistoryCheckpoint',true);
++
++if isfield(par,'snapshotTimes') && ~isempty(par.snapshotTimes)
++    saveCtl.snapshotTimes = sort(par.snapshotTimes(:).');
++else
++    saveCtl.snapshotTimes = [];
++end
++saveCtl.nextSnapshotIndex = 1;
++
++saveCtl.snapshotEveryTime = local_get_num(par,'snapshotEveryTime',Inf);
++saveCtl.snapshotEverySteps = round(local_get_num(par,'snapshotEverySteps',Inf));
++if ~(isfinite(saveCtl.snapshotEveryTime) && saveCtl.snapshotEveryTime > 0)
++    saveCtl.snapshotEveryTime = Inf;
++end
++if ~(isfinite(saveCtl.snapshotEverySteps) && saveCtl.snapshotEverySteps > 0)
++    saveCtl.snapshotEverySteps = Inf;
++end
++saveCtl.nextPeriodicSnapshotTime = saveCtl.snapshotEveryTime;
++
++saveCtl.checkpointEveryTime = local_get_num(par,'checkpointEveryTime',1.0);
++saveCtl.checkpointEverySteps = round(local_get_num(par,'checkpointEverySteps',Inf));
++if ~(isfinite(saveCtl.checkpointEveryTime) && saveCtl.checkpointEveryTime > 0)
++    saveCtl.checkpointEveryTime = Inf;
++end
++if ~(isfinite(saveCtl.checkpointEverySteps) && saveCtl.checkpointEverySteps > 0)
++    saveCtl.checkpointEverySteps = Inf;
++end
++saveCtl.nextCheckpointTime = saveCtl.checkpointEveryTime;
++
++saveCtl.latestFile = fullfile(saveCtl.outdir, local_get_string(par,'checkpointFile','latest_checkpoint.mat'));
++saveCtl.historyFile = fullfile(saveCtl.outdir, local_get_string(par,'historyCheckpointFile','history_checkpoint.mat'));
++saveCtl.lastSnapshotStep = -Inf;
++saveCtl.lastCheckpointStep = -Inf;
++saveCtl.savedCount = 0;
++end
++
++function [saveCtl, didSave] = local_maybe_save_intermediate(saveCtl, par, tag, t, step, W, u, n, rho, H, D, Kx, grid, op, residual, history, dg, resInfo, dtInfo, stepInfo)
++%LOCAL_MAYBE_SAVE_INTERMEDIATE 按设定条件保存中间结果。
++%  这个函数只在“已接受的宏步”之后调用，因此不会保存被拒绝的 trial step。
++
++didSave = false;
++tolT = 1e-12 + 1e-10*max(1, abs(t));
++
++saveFull = false;
++reason = '';
++if saveCtl.snapshotEnabled
++    if step == 1 && local_get_bool(par,'saveInitialAcceptedSnapshot',true)
++        saveFull = true;
++        reason = 'first';
++    end
++    while saveCtl.nextSnapshotIndex <= numel(saveCtl.snapshotTimes) && ...
++            t + tolT >= saveCtl.snapshotTimes(saveCtl.nextSnapshotIndex)
++        saveFull = true;
++        reason = sprintf('time%.6g', saveCtl.snapshotTimes(saveCtl.nextSnapshotIndex));
++        saveCtl.nextSnapshotIndex = saveCtl.nextSnapshotIndex + 1;
++    end
++    while isfinite(saveCtl.nextPeriodicSnapshotTime) && t + tolT >= saveCtl.nextPeriodicSnapshotTime
++        saveFull = true;
++        reason = sprintf('periodic%.6g', saveCtl.nextPeriodicSnapshotTime);
++        saveCtl.nextPeriodicSnapshotTime = saveCtl.nextPeriodicSnapshotTime + saveCtl.snapshotEveryTime;
++    end
++    if isfinite(saveCtl.snapshotEverySteps) && saveCtl.snapshotEverySteps > 0 && ...
++            mod(step, saveCtl.snapshotEverySteps) == 0 && step ~= saveCtl.lastSnapshotStep
++        saveFull = true;
++        reason = sprintf('step%d', step);
++    end
++end
++
++if saveFull
++    vars = local_make_save_vars(par, tag, t, step, W, u, n, rho, H, D, Kx, grid, op, residual, history, dg, resInfo, dtInfo, stepInfo);
++    vars.saveReason = reason;
++    fname = fullfile(saveCtl.snapshotDir, sprintf('%s_step%07d_t%.6g.mat', tag, step, t));
++    local_save_struct_mat(fname, vars, par);
++    saveCtl.lastSnapshotStep = step;
++    saveCtl.savedCount = saveCtl.savedCount + 1;
++    didSave = true;
++end
++
++saveLatest = false;
++if saveCtl.checkpointEnabled
++    if step == 1
++        saveLatest = true;
++    end
++    while isfinite(saveCtl.nextCheckpointTime) && t + tolT >= saveCtl.nextCheckpointTime
++        saveLatest = true;
++        saveCtl.nextCheckpointTime = saveCtl.nextCheckpointTime + saveCtl.checkpointEveryTime;
++    end
++    if isfinite(saveCtl.checkpointEverySteps) && saveCtl.checkpointEverySteps > 0 && ...
++            mod(step, saveCtl.checkpointEverySteps) == 0 && step ~= saveCtl.lastCheckpointStep
++        saveLatest = true;
++    end
++end
++
++if saveLatest
++    vars = local_make_save_vars(par, tag, t, step, W, u, n, rho, H, D, Kx, grid, op, residual, history, dg, resInfo, dtInfo, stepInfo);
++    vars.saveReason = 'latest-checkpoint';
++    local_save_struct_mat(saveCtl.latestFile, vars, par);
++    saveCtl.lastCheckpointStep = step;
++    didSave = true;
++end
++
++if saveCtl.historyEnabled && (saveFull || saveLatest)
++    histVars = struct();
++    histVars.history = history;
++    histVars.par = par;
++    histVars.tag = tag;
++    histVars.t = t;
++    histVars.step = step;
++    histVars.residual = residual;
++    histVars.diagnostics = dg;
++    histVars.dtInfo = dtInfo;
++    histVars.resInfo = resInfo;
++    local_save_struct_mat(saveCtl.historyFile, histVars, par);
++end
++end
++
++function [saveCtl, didSave] = local_force_save_latest(saveCtl, par, tag, t, step, W, u, n, rho, H, D, Kx, grid, op, residual, history, dg, resInfo, dtInfo, stepInfo)
++%LOCAL_FORCE_SAVE_LATEST 强制写一次 latest checkpoint。
++didSave = false;
++if ~isstruct(saveCtl) || ~isfield(saveCtl,'latestFile')
++    saveCtl = local_intermediate_save_init(par, tag);
++end
++if saveCtl.checkpointEnabled
++    vars = local_make_save_vars(par, tag, t, step, W, u, n, rho, H, D, Kx, grid, op, residual, history, dg, resInfo, dtInfo, stepInfo);
++    vars.saveReason = 'final-or-failed-checkpoint';
++    local_save_struct_mat(saveCtl.latestFile, vars, par);
++    didSave = true;
++end
++if saveCtl.historyEnabled
++    histVars = struct('history',history,'par',par,'tag',tag,'t',t,'step',step, ...
++        'residual',residual,'diagnostics',dg,'dtInfo',dtInfo,'resInfo',resInfo);
++    local_save_struct_mat(saveCtl.historyFile, histVars, par);
++end
++end
++
++function vars = local_make_save_vars(par, tag, t, step, W, u, n, rho, H, D, Kx, grid, op, residual, history, dg, resInfo, dtInfo, stepInfo)
++%LOCAL_MAKE_SAVE_VARS 组织保存变量。
++vars = struct();
++vars.W = W;
++vars.u = u;
++vars.n = n;
++vars.rho = rho;
++vars.H = H;
++vars.D = D;
++vars.Kx = Kx;
++vars.grid = grid;
++vars.op = op;
++vars.par = par;
++vars.tag = tag;
++vars.t = t;
++vars.step = step;
++vars.residual = residual;
++vars.history = history;
++vars.diagnostics = dg;
++vars.resInfo = resInfo;
++vars.dtInfo = dtInfo;
++vars.stepInfo = stepInfo;
++vars.createdBy = 'run_wkb_timeap_1d intermediate output';
++vars.createdAt = datestr(now, 31);
++end
++
++function local_save_struct_mat(filename, vars, par)
++%LOCAL_SAVE_STRUCT_MAT 保存 struct 到 mat 文件。
++try
++    if local_get_bool(par,'saveMatV73',false)
++        save(filename, '-struct', 'vars', '-v7.3');
++    else
++        save(filename, '-struct', 'vars');
++    end
++catch ME
++    warning('run_wkb_timeap_1d:IntermediateSaveFailed', ...
++        '保存中间结果失败：%s。文件：%s', ME.message, filename);
++end
++end
++
+ %==========================================================================
+ % 工具函数
+ %==========================================================================
+--- /tmp/default_params_1d.m.bak	2026-05-27 15:14:35.305098842 +0000
++++ +model/default_params_1d.m	2026-05-27 15:16:22.446814479 +0000
+@@ -139,6 +139,21 @@
+ par.stopByResidual = true;
+ par.storeSnapshots = true;
+ par.snapshotTimes = [];
++% 中间输出与 checkpoint。
++% storeSnapshots 控制是否保存编号快照，snapshotEveryTime/Steps 控制保存周期；
++% latest_checkpoint.mat 每隔 checkpointEveryTime/Steps 覆盖保存一次，便于中途停止后读取。
++par.saveIntermediate = true;
++par.snapshotEveryTime = 5.0;
++par.snapshotEverySteps = [];
++par.saveLatestCheckpoint = true;
++par.checkpointEveryTime = 1.0;
++par.checkpointEverySteps = [];
++par.saveHistoryCheckpoint = true;
++par.snapshotSubdir = 'snapshots';
++par.checkpointFile = 'latest_checkpoint.mat';
++par.historyCheckpointFile = 'history_checkpoint.mat';
++par.printIntermediateSaveMessage = false;
++par.saveMatV73 = false;
+ par.verbose = true;
+ par.progressEveryPercent = 5;
+ par.progressEverySeconds = 10;
+--- /tmp/run_main_1d.m.bak	2026-05-27 15:14:35.313816762 +0000
++++ run/run_main_1d.m	2026-05-27 15:16:22.447910191 +0000
+@@ -39,8 +39,13 @@
+         par.dt = 1e-3;
+         par.tol = 1e-8;
+         par.historyEveryTime = 1.0;
+-        par.storeSnapshots = false;
++        % quick 模式也保存中间结果。否则长时间 projective 计算中途停止时没有数据可读。
++        par.storeSnapshots = true;
+         par.snapshotTimes = [];
++        par.snapshotEveryTime = 5.0;
++        par.saveLatestCheckpoint = true;
++        par.checkpointEveryTime = 0.5;
++        par.saveHistoryCheckpoint = true;
+     case 'paper'
+         par.Nx = 200;
+         par.Ntheta = 128;
+@@ -50,6 +55,10 @@
+         par.historyEveryTime = 0.5;
+         par.storeSnapshots = true;
+         par.snapshotTimes = [1, 5, 10, 20, par.T];
++        par.snapshotEveryTime = 5.0;
++        par.saveLatestCheckpoint = true;
++        par.checkpointEveryTime = 1.0;
++        par.saveHistoryCheckpoint = true;
+     case 'oldlike'
+         par.Nx = 10;          % 比旧代码 N_x=5 略细，但仍然很快
+         par.Ntheta = 50;
+@@ -57,8 +66,12 @@
+         par.dt = 2e-3;
+         par.tol = 1e-8;
+         par.historyEveryTime = 1.0;
+-        par.storeSnapshots = false;
++        par.storeSnapshots = true;
+         par.snapshotTimes = [];
++        par.snapshotEveryTime = 1.0;
++        par.saveLatestCheckpoint = true;
++        par.checkpointEveryTime = 0.5;
++        par.saveHistoryCheckpoint = true;
+     otherwise
+         error('Unknown runMode "%s".', runMode);
+ end
+@@ -204,6 +217,11 @@
+ summary.prepareInitialMass = par.prepareInitialMass;
+ summary.thetaRephase = par.thetaRephase;
+ summary.thetaRephaseStatistic = par.thetaRephaseStatistic;
++summary.storeSnapshots = par.storeSnapshots;
++summary.snapshotEveryTime = par.snapshotEveryTime;
++summary.saveLatestCheckpoint = par.saveLatestCheckpoint;
++summary.checkpointEveryTime = par.checkpointEveryTime;
++summary.saveHistoryCheckpoint = par.saveHistoryCheckpoint;
+ summary.theta_m = par.theta_m;
+ summary.theta_wkb = wkb.diagnostics.theta_wkb;
+ summary.err_wkb_to_m = wkb.diagnostics.err_wkb_to_m;

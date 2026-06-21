@@ -1,0 +1,834 @@
+\documentclass[11pt, dina4, amsfont12]{article}
+\topmargin=-1.0cm
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{showlabe}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{color}
+\input psfig.sty
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+
+% ******************************* Author Macros *******************************
+
+\newcommand{\pl}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\bu}{{\bf u} }
+\newcommand{\p}{\partial}
+\newcommand{\og}{\omega}
+\newcommand{\Og}{\Omega}
+\newcommand{\fl}[2]{\frac{#1}{#2}}
+\newcommand{\dt}{\delta}
+\newcommand{\nn}{\nonumber}
+\newcommand{\ap}{\alpha}
+\newcommand{\bt}{\beta}
+\newcommand{\tht}{\theta}
+\newcommand{\kp}{\kappa}
+\newcommand{\Dt}{\Delta}
+\renewcommand{\theequation}{\arabic{section}.\arabic{equation}}
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\ba}{\begin{array}}
+\newcommand{\ea}{\end{array}}
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+\newcommand{\beas}{\begin{eqnarray*}}
+\newcommand{\eeas}{\end{eqnarray*}}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{remark}{Remark}[section]
+\newcommand{\bx}{{\bf x} }
+\newcommand{\gm}{\gamma}
+\newcommand{\vep}{\varepsilon}
+
+% *****************************************************************************
+
+% ===================================================================
+%      Title
+% ===================================================================
+\title{Fast algorithms to efficiently capture the adaptive concentration for dispersal evolution model}
+
+\author{
+Wiejie Huang\thanks{Department of Mathematics, Beijing Jiaotong University, address {\tt (email).}} \ and
+Xinran Ruan\thanks{School of Mathematical Sciences, Capital Normal University, Beijing, China, 100048{\tt (xinran.ruan@cnu.edu.cn)}.}
+}
+\begin{document}
+\date{}
+\maketitle
+
+\begin{abstract}
+The evolution of a dispersal trait is a classical question in evolutionary ecology. A typical phenomenon is that the trait variable will concentrate to a Dirac mass, which makes the accurate capture of the fittest trait difficult. 
+In our paper, we presented a new scheme based on WKB ansatz to efficiently capture the fittest trait without putting many points in the phenotypic direction. The boundedness of the density is proven. Numerical examples are provided to show the efficiency of our scheme.
+\end{abstract}
+
+{\bf Key words. }  
+
+% =====================================================================
+%   Section 1:  Introduction
+% =====================================================================
+\section{Introduction}
+%  第一段：介绍问题来源与问题重要性 + 介绍模型（含参数介绍）
+% 介绍“为什么研究 space–trait structured population 模型”。
+% 介绍 dispersal selection 的生物背景。
+In this paper, we consider the model  
+\begin{equation} \label{eq:n}
+    \varepsilon \partial_t n_\varepsilon -D(\theta)\Delta_\mathbf{x} n_\varepsilon -\varepsilon^2\Delta_\theta n_\varepsilon = n_\varepsilon(K(\mathbf{x})-\rho_\varepsilon(\mathbf{x})), \quad \mathbf{x} \in \Omega,    
+\end{equation}
+where $t,\mathbf{x},\theta$ represent time, space and phenotype, respectively, $D(\theta)$ denotes the diffusion rate with different phenotype, $n(t,\mathbf{x}, \theta)$ is the structured population density distribution, $\rho(\mathbf{x}) = \int \, n(t, \mathbf{x}, \theta) \, d\theta$ is the total population density at time $t$ and space $\mathbf{x}$, $K(\mathbf{x})$ is the spatial capacity. 
+For mathematical simplicity, $n_\varepsilon$ is periodic in $\theta$-direction and satisfies Neumann boundary condition on $\partial \Omega$. 
+
+% 第二段：问题的基础研究进展
+
+% 第三段：介绍 rare mutation limit + 问题特点（理论进展）+ 研究困难
+% 这一段应突出 “模型的 mathematical difficulties”。
+As time $t\to \infty$, the distribution converges to a steady state. And then we let $\varepsilon \to 0$, the limit steady state has a Dirac concentration in $\theta$-direction.
+
+% 第四段：介绍研究思路来源与相关研究进展(WKB ansatz motivation）
+
+
+% 第五段：介绍本文的理论结果与数值结果
+
+
+% 第六段：介绍本文结构
+
+% 第二章：介绍模型的基础理论与WKB分解
+\section{Preliminary}
+% PDE 性质
+
+
+% WKB ansatz 与 新性质
+\subsection{WKB ansatz}
+To efficiently capture the concentration phenomenon in the phenotypic variable, we adopt the classical WKB ansatz
+\begin{equation}\label{eq:WKB}
+   n_\varepsilon(x,\theta,t)
+   = W_\varepsilon(x,\theta,t)\,
+   \exp\!\left(\frac{u_\varepsilon(\theta,t)}{\varepsilon}\right).
+\end{equation}
+Formally, as $\varepsilon \to 0$ and $t \to +\infty$, this decomposition separates the macroscopic amplitude $W_\varepsilon$ from the rapidly varying exponential profile governed by $u_\varepsilon$, which characterizes the concentration dynamics in the phenotypic direction.
+
+As suggested in \cite{XXX}, a formal asymptotic analysis shows that, as $\varepsilon \to 0$, 
+the steady state $W_\varepsilon(x,\theta)$ converges to a positive eigenfunction 
+$\mathcal{N}(x,\theta)$ solving
+\begin{equation}\label{eq:eigen_N}
+    -D(\theta)\Delta_x \mathcal{N}
+    = \mathcal{N}\bigl(K(x)-\rho(\cdot)\bigr)
+    + \mathcal{N}\, \mathcal{H}(\theta,\rho(\cdot)), 
+    \, x \in \Omega, 
+\end{equation}
+with the homogeneous Neumann boundary condition in $x$-direction and periodic boundary condition in $\theta$-direction, where $H(\theta,\rho(\cdot))$ denotes the associated principal eigenvalue.
+Moreover, the limiting steady state $u(\theta)$ satisfies the constrained
+Hamilton--Jacobi equation
+\begin{equation}\label{eq:HJ_limit}
+\begin{cases}
+    |\nabla_\theta u(\theta)|^2 = \mathcal{H}(\theta,\rho(\cdot)), \\[1mm]
+    \displaystyle \max_{\theta} u(\theta) = 0.
+\end{cases}
+\end{equation}
+
+Motivated by this limiting behavior, in order to construct an asymptotic preserving
+scheme, the effective Hamiltonian $\mathcal{H}$ must be incorporated into the evolution
+equations for both $W_\varepsilon$ and $u_\varepsilon$.
+Substituting the WKB ansatz \eqref{eq:WKB} into equation \eqref{eq:n} and assigning all the
+leading exponential contributions to the phase function $u_\varepsilon$, we obtain 
+\begin{equation}\label{eq:u_equation}
+\partial_t u_\varepsilon
+- |\nabla_\theta u_\varepsilon|^2
+- \varepsilon \Delta_\theta u_\varepsilon
+= - \mathcal{H}(\theta,t).
+\end{equation}
+With $u_\varepsilon$ determined by \eqref{eq:u_equation}, the remaining terms yield the evolution
+equation for the amplitude $W_\varepsilon$, leading to the coupled reformulated system
+\begin{equation}\label{eq:WKB_reformulation}
+\left\{
+\begin{aligned}
+\partial_t u_\varepsilon
+&- |\nabla_\theta u_\varepsilon|^2
+- \varepsilon \Delta_\theta u_\varepsilon
+= - \mathcal{H}(\theta,t), \\
+\varepsilon \partial_t W_\varepsilon
+&- D(\theta)\Delta_x W_\varepsilon
+- \varepsilon^2 \Delta_\theta W_\varepsilon
+- 2\varepsilon \nabla_\theta W_\varepsilon \cdot \nabla_\theta u_\varepsilon = W_\varepsilon\bigl(K(x)-\rho_\varepsilon(x) + \mathcal{H}(\theta,t)\bigr).
+\end{aligned}
+\right.
+\end{equation}
+
+\subsection{Rare mutation limit of the steady state}
+
+
+
+% 第三章：完整的离散算法与主要性质（有界性结果 + AP 证明 + 精度结果（证明可放后面））
+\section{Detailed scheme}
+
+% 1. Well-posedness / Boundedness / Non-negativity of the scheme
+
+% 2. Discrete Asymptotic-Preserving (AP) property 重点
+
+% 3. Stability (energy estimate 或 contraction) 
+
+% 4. Steady-state preserving property
+
+% 5. Error-consistency results（不写）
+
+% 6. Consistency with the Dirac concentration
+
+% 半离散证明
+\subsection{Semi-discrete numerical discretization}
+By considering semi-discrete schemes, we are able to isolate the effects of the
+spatial and phenotypic discretizations without additional complications
+introduced by time stepping. The extension to fully discrete schemes, obtained
+by applying standard time discretization techniques, follows along similar
+lines and is therefore omitted. 
+Besides, for clarity of presentation, we restrict our
+analysis to the one-dimensional spatial case. Extensions to higher-dimensional
+spatial domains are straightforward and hence omitted.
+
+
+
+% \paragraph{Spatial and phenotypic grids.}
+In the spatial direction, we introduce a uniform grid
+$\{x_j\}_{j=1}^J$, while in the phenotypic direction the variable $\theta$ is
+discretized on grid points $\{\theta_k\}_{k=1}^K$.
+The numerical approximation of $W_\varepsilon(t, x_j, \theta_k)$ and $u_{\varepsilon}(t, \theta_k)$ are 
+$W_{j,k}^{\varepsilon}(t)$ and $u_k^{\varepsilon}(t)$, respectively. 
+Let $\Delta_x$ denote the Laplace operator in the spatial variable.
+We assume that it is approximated by a discrete operator $A_h$ acting on grid
+functions defined on $\{x_j\}_{j=1}^J$, and satisfying the stability bound
+\[
+\|A_h v\|_\infty \le C_h \|v\|_\infty,
+\]
+where $C_h>0$ depends on the mesh size but is independent of $v$.
+A typical example is the standard second-order centered difference operator
+$\delta_x^2$.
+Similarly, we approximate $\partial_{\theta\theta}$ by the centered
+second-order operator $\delta_\theta^2$, defined by
+\[
+\delta_x^2 W_{j,k}
+=
+\frac{W_{j+1,k}-2W_{j,k}+W_{j-1,k}}{(\Delta x)^2},
+\qquad
+\delta_\theta^2 W_{j,k}
+=
+\frac{W_{j,k+1}-2W_{j,k}+W_{j,k-1}}{(\Delta\theta)^2}.
+\]
+
+% \paragraph{First-order terms in the $\theta$-direction.}
+In the reformulated WKB system \eqref{eq:WKB_reformulation}, the
+$\theta$-direction contains first-order terms involving both
+$W_\varepsilon$ and $u_\varepsilon$.
+To facilitate the subsequent positivity and boundedness analysis for
+$W_\varepsilon$, as well as the viscosity-solution framework for
+$u_\varepsilon$, we adopt monotone upwind-type discretizations in the
+$\theta$-direction.
+We introduce the notation
+\[
+H_1(\partial_\theta u_\varepsilon)
+:= -|\partial_\theta u_\varepsilon|^2,
+\quad
+H_2(\partial_\theta W_\varepsilon,\partial_\theta u_\varepsilon)
+:= -2\varepsilon\,\partial_\theta W_\varepsilon\,\partial_\theta u_\varepsilon.
+\]
+Instead of discretizing $H_1$ in its nonconservative product form, we rewrite it
+using the product rule:
+\begin{equation}\label{eq:H1_flux_form}
+-2\varepsilon\, \partial_\theta W_\varepsilon\, \partial_\theta u_\varepsilon
+=
+\partial_\theta\!\bigl(-2\varepsilon W_\varepsilon\,\partial_\theta u_\varepsilon\bigr)
++ 2\varepsilon\, W_\varepsilon\, \partial_{\theta\theta}u_\varepsilon .
+\end{equation}
+This reformulation allows us to discretize the first term in
+\eqref{eq:H1_flux_form} by a conservative monotone numerical flux, which is
+crucial for establishing a discrete maximum principle (and hence
+$W_\varepsilon\ge 0$) under standard time discretizations.
+
+\paragraph{Monotone numerical Hamiltonian for the Hamilton--Jacobi term.}
+For the Hamilton--Jacobi term $H_1(\partial_\theta u_\varepsilon)$, we approximate
+the nonlinear Hamiltonian $H(p)=-|p|^2$ by a monotone numerical Hamiltonian
+$\widehat{\mathcal H}(a,b)$ depending on the one-sided slopes
+\[
+D_\theta^- u_k=\frac{u_k-u_{k-1}}{\Delta\theta},
+\qquad
+D_\theta^+ u_k=\frac{u_{k+1}-u_k}{\Delta\theta}.
+\]
+Specifically, we define
+\[
+H_1(\partial_\theta u)\Big|_{\theta=\theta_k}
+\;\approx\;
+\widehat{\mathcal H}\!\left(D_\theta^- u_k,\; D_\theta^+ u_k\right),
+\]
+where the numerical Hamiltonian $\widehat{\mathcal H}$ satisfies the consistency
+condition $\widehat{\mathcal H}(p,p)=H(p)$ and the monotonicity property that it
+is nondecreasing in its first argument and nonincreasing in its second argument.
+These conditions ensure that the resulting scheme is monotone and fits into the
+standard framework of monotone approximations for viscosity solutions of
+Hamilton--Jacobi equations.
+
+Typical choices of $\widehat{\mathcal H}(a,b)$ include the Godunov and
+Lax--Friedrichs numerical Hamiltonians. 
+In practice, Roe-type numerical
+Hamiltonians combined with suitable entropy fixes are often employed to reduce
+numerical dissipation while preserving monotonicity. 
+Higher-order accuracy can
+be achieved by applying ENO, WENO, or MUSCL-type reconstructions to the one-sided
+slopes $D_\theta^- u_k$ and $D_\theta^+ u_k$. 
+A detailed example can be found in
+Appendix~\ref{append:HJ}.
+
+
+\paragraph{Monotone flux for the conservative coupling term.}
+For the conservative coupling term
+$\partial_\theta\!\bigl(- W\,\partial_\theta u\bigr)$,
+we approximate the flux
+$F(W,p)=- W p$, where $p=\partial_\theta u$, by a conservative
+monotone numerical flux $\widehat F_{k+\frac12}$. Specifically, we set
+\[
+\partial_\theta\!\bigl(- W p\bigr)\Big|_{\theta=\theta_k}
+\;\approx\;
+\frac{\widehat F_{k+\frac12}-\widehat F_{k-\frac12}}{\Delta\theta},
+\qquad
+\widehat F_{k+\frac12}
+=
+\widehat F\!\left(W_{j,k},\,W_{j,k+1};\,p_{k+\frac12}\right),
+\]
+where the numerical flux $\widehat F(W_L,W_R;p)$ is consistent, i.e. $\widehat F(W,W;p) = -2\varepsilon W p$,
+and monotone with respect to $W_L$ and $W_R$ in the sense that
+$\partial_{W_L}\widehat F \ge 0$ and $\partial_{W_R}\widehat F \le 0$,
+uniformly in $p$.
+The interface value $p_{k+\frac12}$ is obtained from the left and right
+reconstructed slopes at $\theta_{k+\frac12}$. In particular, it can be selected
+via a Godunov-type procedure consistent with the upwind discretization of the
+coupling flux. Alternatively, an averaged value of the left and right
+reconstructed slopes may be used, corresponding to a Lax--Friedrichs-type
+treatment of the coupling flux.
+A detailed example can be found in
+Appendix~\ref{append:flux}.
+
+
+
+
+
+
+
+
+
+
+\paragraph{Semi-discrete scheme.}
+For each $k=1,\dots,K$, let the discrete density $\rho_j(t)$ be defined by
+\begin{equation} \label{eq:rho}
+    \rho_j^\varepsilon(t)
+=
+\Delta\theta \sum_{k=1}^K
+W_{j,k}^\varepsilon(t)\,
+\exp\!\left(\frac{u_k^\varepsilon(t)}{\varepsilon}\right),
+\qquad j=1,\dots,J.
+\end{equation}
+Given $\boldsymbol{\rho}(t) = (\rho_1^\varepsilon(t), \dots, \rho_J^\varepsilon(t))$, we consider the discrete eigenvalue problem associated
+with \eqref{eq:eigen_N}:
+\begin{equation}\label{eq:eigen_discrete}
+    -D(\theta_k)\,\delta_x^2 \mathcal{N}_j
+    = \mathcal{N}_j\bigl(K(x_j)-\rho_j^\varepsilon(t)\bigr)
+    + \mathcal{N}_j\, \mathcal{H}_k(\boldsymbol{\rho}(t)),
+    \qquad j = 1,\dots, J,
+\end{equation}
+where $\mathcal{H}_k(\boldsymbol{\rho}(t))$ and $\mathcal{N}_j$ denote the numerical
+approximations of the principal eigenvalue and the corresponding eigenfunction
+$\mathcal{N}(x_j)$, respectively.
+
+With the above discretizations, the detailed semi-discrete scheme reads as
+follows. The phase function $u_k^\varepsilon(t)$ is governed by the semi-discrete
+Hamilton--Jacobi equation
+\begin{equation}\label{eq:semi_discrete_u_detailed}
+\frac{\mathrm d}{\mathrm dt} u_k^\varepsilon
++
+\widehat{\mathcal H}
+\!\left(D_\theta^- u_k^\varepsilon,\; D_\theta^+ u_k^\varepsilon\right)
+- \varepsilon\, \delta_\theta^2 u_k^\varepsilon
+= - \mathcal{H}_k(\boldsymbol{\rho}(t)),
+\qquad k=1,\dots,K,
+\end{equation}
+where $\mathcal{H}_k(\boldsymbol{\rho}(t))$ denotes the principal eigenvalue associated
+with the discrete eigenvalue problem \eqref{eq:eigen_discrete}.
+For $j=1,\dots,J$ and $k=1,\dots,K$, the amplitude $W_{j,k}^\varepsilon(t)$
+satisfies
+\begin{equation}\label{eq:semi_discrete_W_detailed}
+\begin{aligned}
+\varepsilon \frac{\mathrm d}{\mathrm dt} W_{j,k}^\varepsilon
+&- D(\theta_k)\,(A_h W^\varepsilon)_{j,k}
+- \varepsilon^2 \delta_\theta^2 W^\varepsilon_{j,k}
++ 2 \varepsilon \frac{\widehat F_{j,k+\frac12}-\widehat F_{j,k-\frac12}}{\Delta\theta} \\
+&= W_{j,k}^\varepsilon
+\bigl(K(x_j)-\rho_j^\varepsilon(t)
++ \mathcal{H}_k(\boldsymbol{\rho}(t))
+-2\varepsilon\,\delta_\theta^2 u_k^\varepsilon\bigr).
+\end{aligned}
+\end{equation}
+
+% % ===========作废=================
+% The semi-discrete scheme corresponding to
+% \eqref{eq:WKB_reformulation} is given by
+% \begin{equation}\label{eq:semi_discrete_W}
+% \begin{aligned}
+% \varepsilon \frac{\mathrm d}{\mathrm dt} W_{j,k}^\varepsilon
+% &- D(\theta_k)\,(A_h W)_{j,k}^\varepsilon
+% - \varepsilon^2 \delta_{\theta}^2 W_{j,k}^\varepsilon
+% - 2\varepsilon \mathcal{G}_{\theta} W_{j,k}^\varepsilon\,\mathcal{G}_{\theta} u_k^\varepsilon \\
+% &= W_{j,k}^\varepsilon\bigl(K(x_j)-\rho_j(t)\bigr)
+% + W_{j,k} H_k(t),
+% \end{aligned}
+% \end{equation}
+% for $j=1,\dots,J$ and $k=1,\dots,K$, where $H_k(t)$ is a discrete approximation of $H(\theta_k,t)$,  
+% and the discrete density $\rho_j(t)$ is defined by
+% \[
+% \rho_j(t)
+% = \sum_{k=1}^K W_{j,k}^\varepsilon(t)\,
+% \exp\!\left(\frac{u_k^\varepsilon(t)}{\varepsilon}\right)\,
+% \Delta\theta .
+% \]
+% The phase function $u_k(t)$ satisfies the semi-discrete Hamilton--Jacobi equation
+% \begin{equation}\label{eq:semi_discrete_u}
+% \frac{\mathrm d}{\mathrm dt} u_k^\varepsilon
+% - \bigl|\mathcal{G}_{\theta} u^\varepsilon\bigr|_k^{\,2}
+% - \varepsilon \delta_{\theta}^2 u_k^\varepsilon
+% = - H_k(t),
+% \qquad k=1,\dots,K.
+% \end{equation}
+
+\subsection{A priori estimates}
+
+To establish numerical stability and the asymptotic-preserving property, we
+derive several \emph{a priori} estimates for the semi-discrete WKB system.
+Due to the coupled structure of the phase and amplitude equations, the analysis
+relies on a bootstrap argument: we first establish positivity and basic
+invariance properties, and then derive discrete regularity estimates for the
+phase function under a boundedness assumption on the density, which will be
+verified subsequently.
+
+\medskip
+
+\paragraph{Step 1: Positivity of the amplitude.}
+
+\begin{lemma}[Positivity]\label{lem:positivity_W}
+Assume $W_{j,k}^\varepsilon(0)\ge0$ for all $j,k$. Then the semi-discrete system
+\eqref{eq:semi_discrete_W_detailed} preserves nonnegativity, i.e.
+\[
+W_{j,k}^\varepsilon(t)\ge0
+\qquad
+\forall\, j,k,\ t\ge0 .
+\]
+\end{lemma}
+
+\textit{Proof.}
+We rewrite \eqref{eq:semi_discrete_W_detailed} as a finite-dimensional ODE system
+\[
+\varepsilon \dot{\mathbf W}
+=
+\mathsf{L}\mathbf W + \mathbf G(\mathbf W,t),
+\]
+where $\mathsf{L}$ contains the linear diffusion operator in $x$ and the monotone
+conservative discretization in $\theta$, and $\mathbf G(\mathbf W,t)$ denotes the
+reaction term of the form $\Xi_{j,k}(t)W_{j,k}^\varepsilon$.
+
+By construction, $\mathsf{L}$ is a Metzler-type operator with nonnegative
+off-diagonal entries: the diffusion operator in $x$ is associated with an
+$M$-matrix, while the discretization in the $\theta$-direction is monotone
+(upwind or Godunov type). Hence the linear semiflow generated by $\mathsf{L}$ is
+order-preserving. Moreover, the nonlinear term $\mathbf G$ is quasi-monotone and
+vanishes whenever $W_{j,k}^\varepsilon=0$. Therefore, the nonnegative cone is
+invariant under the induced semiflow, which implies
+$W_{j,k}^\varepsilon(t)\ge0$ for all $t\ge0$.
+\hfill$\square$
+
+\medskip
+
+\paragraph{Step 2: Discrete slope bound for the phase function.}
+
+\begin{lemma}[Local-in-time discrete bounds for $u$]\label{lem:slope_u}
+Assume that the initial phase is bounded in the sense that
+\[
+    \max_k u_k^\varepsilon(0) \le C_0 \varepsilon, 
+\]
+discretely Lipschitz, i.e.,
+\begin{equation}\label{eq:u0_lip}
+\max_{k}\Big(|D_\theta^-u_k^\varepsilon(0)|+|D_\theta^+u_k^\varepsilon(0)|\Big)
+\le L_0,
+\end{equation}
+and that the initial discrete density $\rho_j(0), j=1,\dots,J$, is bounded in space. 
+Then there exists $T$, possibly depending on $\varepsilon$, and some constants $C_T, L_T>0$ depending on $T$, such that
+\[
+\max_{t\in[0,T]}\max_k u_k^\varepsilon(t) \le C_T \varepsilon, 
+\quad
+\max_{t\in[0,T]}\max_{k}
+\Big(|D_\theta^-u_k^\varepsilon(t)|
+    +|D_\theta^+u_k^\varepsilon(t)|\Big)
+\le L_T .
+\]
+\end{lemma}
+
+\textit{Proof.}
+Since the semi-discrete system
+\eqref{eq:semi_discrete_u_detailed}--\eqref{eq:semi_discrete_W_detailed}
+is a finite-dimensional ODE system with locally Lipschitz right-hand side,
+for each fixed $\varepsilon>0$ there exists a (possibly small) time
+$T>0$ such that the solution
+$\{u_k^\varepsilon(t),W_{j,k}^\varepsilon(t)\}$ exists and is continuous on $[0,T]$.
+In particular, $u_k^\varepsilon(t)$ depends continuously on time and on the
+initial data.
+
+By assumption, the initial phase satisfies
+$\max_k u_k^\varepsilon(0)\le C_0\varepsilon$ and is discretely Lipschitz in the
+sense of \eqref{eq:u0_lip}.  
+Since the one-sided derivatives $D_\theta^\pm u_k^\varepsilon$ are obtained from
+$u^\varepsilon$ by a fixed reconstruction procedure (possibly nonlinear, such as
+ENO/WENO or MUSCL), which is continuous with respect to the nodal values of
+$u^\varepsilon$, it follows from continuity that there exists a time
+$T>0$, possibly depending on $\varepsilon$, and a constant $L_T>0$ such that
+\[
+\max_{t\in[0,T]}\max_k
+\big(|D_\theta^-u_k^\varepsilon(t)|
+    +|D_\theta^+u_k^\varepsilon(t)|\big)
+\le L_T .
+\]
+
+We next control the amplitude of $u^\varepsilon(t)$.
+By continuity of the solution and boundedness of the initial discrete density
+$\rho_j(0)$, the source term $\mathcal H_k(\boldsymbol\rho(t))$ remains bounded on
+$[0,T]$, i.e., there exists $C_T>0$ such that
+\[
+\max_{t\in[0,T]}\max_k |\mathcal H_k(\boldsymbol\rho(t))|\le C_T .
+\]
+Evaluating the semi-discrete Hamilton--Jacobi equation
+\eqref{eq:semi_discrete_u_detailed} and using the boundedness of
+$\widehat{\mathcal H}(D_\theta^-u_k^\varepsilon,D_\theta^+u_k^\varepsilon)$ on
+$[0,T]$, we infer that $\partial_t u_k^\varepsilon(t)$ is bounded on $[0,T]$.
+Consequently, there exists (possibly after reducing $T$) a constant $C_T>0$ such
+that
+\[
+\max_k u_k^\varepsilon(t)\le C_T\varepsilon,
+\qquad t\in[0,T].
+\]
+This proves the local-in-time boundedness and discrete Lipschitz estimates stated in the lemma.
+\hfill$\square$
+
+
+
+\medskip
+
+Lemma~\ref{lem:slope_u} provides only a local-in-time control of the phase
+function. In the next step, we derive uniform bounds for the density
+$\rho^\varepsilon$, which allow us to remove the $\varepsilon$-dependence of the
+existence time and close the bootstrap argument.
+Similarly, by the continuity argument, we can also get the local-in-time discrete bound for $W$, the result of which can be fomulated as the following lemma. 
+\begin{lemma}[Weighted first-difference bound for $W$]\label{lem:W_diff}
+Fix $T>0$ and define $g_k(t):=\exp\!\big(u_k^\varepsilon(t)/\varepsilon\big)$.
+Assume that $W_{j,k}^\varepsilon(t)\ge0$ on $[0,T]$ and that
+there exists $\Gamma_T>0$ such that
+\begin{equation}\label{eq:weight_ratio_from_slope}
+\max_{t\in[0,T]}\max_k
+\left|\frac{u_{k+1}^\varepsilon(t)-u_k^\varepsilon(t)}{\varepsilon}\right|
+\le \Gamma_T .
+\end{equation}
+Then for all $t\in[0,T]$ and all $j$,
+\begin{equation}\label{eq:weighted_first_diff_W_simple}
+\Delta\theta\sum_{k=1}^K
+g_k(t)\,|\delta_\theta^+ W_{j,k}^\varepsilon(t)|
+\;\le\;
+M_T\,\rho_{\varepsilon,j}(t),
+\qquad
+\delta_\theta^+W_{j,k}^\varepsilon=\frac{W_{j,k+1}^\varepsilon-W_{j,k}^\varepsilon}{\Delta\theta},
+\end{equation}
+where $M_T:=2\bigl(1+e^{\Gamma_T}\bigr)$ is independent of $\varepsilon$.
+\end{lemma}
+
+\textit{Proof.}
+Fix $t\in[0,T]$ and $j$. Since $W_{j,k}^\varepsilon(t)\ge0$, we have
+\[
+|W_{j,k+1}^\varepsilon-W_{j,k}^\varepsilon|
+\le W_{j,k+1}^\varepsilon+W_{j,k}^\varepsilon.
+\]
+Therefore,
+\[
+\Delta\theta\sum_k g_k\,|\delta_\theta^+W_{j,k}^\varepsilon|
+=
+\sum_k g_k\,|W_{j,k+1}^\varepsilon-W_{j,k}^\varepsilon|
+\le
+\sum_k g_k W_{j,k+1}^\varepsilon+\sum_k g_k W_{j,k}^\varepsilon.
+\]
+The second sum equals $\rho_{\varepsilon,j}(t)$ by definition.
+For the first sum, using \eqref{eq:weight_ratio_from_slope} we obtain
+$g_k\le e^{\Gamma_T}g_{k+1}$, hence
+\[
+\sum_k g_k W_{j,k+1}^\varepsilon
+\le
+e^{\Gamma_T}\sum_k g_{k+1} W_{j,k+1}^\varepsilon
+=
+e^{\Gamma_T}\sum_k g_k W_{j,k}^\varepsilon
+=
+e^{\Gamma_T}\rho_{\varepsilon,j}(t).
+\]
+Combining the above inequalities gives \eqref{eq:weighted_first_diff_W_simple}.
+\hfill$\square$
+
+
+
+
+\paragraph{Step 3: Local control of the remainder term.}
+
+\begin{lemma}[Remainder estimate]\label{lem:R_est}
+Fix $T>0$. Assume that the discrete slope bound in Lemma~\ref{lem:slope_u} holds
+on $[0,T]$, and that the reconstructions used in $\widehat{\mathcal H}$ and
+$\widehat F$ are of order $q\ge1$ in smooth regions. Then there exists $C_T>0$,
+independent of $\varepsilon$, such that for all $t\in[0,T]$ and all $j$,
+\[
+|\mathcal R_{\varepsilon,j}(t)|
+\le
+C_T\big(\Delta\theta^q+\varepsilon\Delta\theta^2\big)\rho_{\varepsilon,j}(t).
+\]
+\end{lemma}
+
+\textit{Proof (sketch).}
+Recall that $\mathcal R_{\varepsilon,j}(t)$ is defined by
+\[
+\mathcal R_{\varepsilon,j}(t)
+=
+\Delta\theta\sum_{k=1}^K \mathcal R_{j,k}^\varepsilon(t),
+\qquad
+\mathcal{R}_{j,k}^\varepsilon(t)
+=
+e^{u_k^\varepsilon/\varepsilon}
+\left(
+\varepsilon^2\,\delta_\theta^2 W_{j,k}^\varepsilon
+-
+\varepsilon\,W_{j,k}^\varepsilon\,\delta_\theta^2 u_k^\varepsilon 
+- 
+W_{j,k}^\varepsilon
+\widehat{\mathcal H} \left( D_\theta^- u_k^\varepsilon,\;D_\theta^+  u_k^\varepsilon\right)
+-
+2\varepsilon
+\frac{\widehat F_{j,k+\frac12}-\widehat F_{j,k-\frac12}}{\Delta\theta}
+\right).
+\]
+We decompose $\mathcal R_{\varepsilon,j}$ into three contributions:
+\[
+\mathcal R_{\varepsilon,j}(t)
+=
+\mathcal R_{\varepsilon,j}^{(1)}(t)
++
+\mathcal R_{\varepsilon,j}^{(2)}(t)
++
+\mathcal R_{\varepsilon,j}^{(3)}(t),
+\]
+where
+\begin{align*}
+\mathcal R_{\varepsilon,j}^{(1)}(t)
+&:=
+\varepsilon^2\,\Delta\theta\sum_k e^{u_k^\varepsilon/\varepsilon}\,\delta_\theta^2 W_{j,k}^\varepsilon,
+\\
+\mathcal R_{\varepsilon,j}^{(2)}(t)
+&:=
+-\varepsilon\,\Delta\theta\sum_k
+W_{j,k}^\varepsilon e^{u_k^\varepsilon/\varepsilon}\,\delta_\theta^2 u_k^\varepsilon,
+\\
+\mathcal R_{\varepsilon,j}^{(3)}(t)
+&:=
+-\Delta\theta\sum_k
+W_{j,k}^\varepsilon e^{u_k^\varepsilon/\varepsilon}\,
+\widehat{\mathcal H}(D_\theta^-u_k^\varepsilon,D_\theta^+u_k^\varepsilon)
+-
+2\varepsilon\,\Delta\theta\sum_k e^{u_k^\varepsilon/\varepsilon}
+\frac{\widehat F_{j,k+\frac12}-\widehat F_{j,k-\frac12}}{\Delta\theta}.
+\end{align*}
+
+\medskip
+\noindent\textbf{Estimate of $\mathcal R_{\varepsilon,j}^{(1)}$ and $\mathcal R_{\varepsilon,j}^{(2)}$.}
+Using summation-by-parts in the $\theta$-direction (with periodic boundary
+conditions, or assuming boundary terms vanish under the imposed $\theta$-boundary
+condition), we can reduce second-order differences to products of first-order
+differences. In particular, denoting $g_k=e^{u_k^\varepsilon/\varepsilon}$,
+\[
+\Delta\theta\sum_k g_k\,\delta_\theta^2 W_{j,k}^\varepsilon
+=
+-\frac{1}{\Delta\theta}\sum_k ( \delta_\theta^+ g_k )(\delta_\theta^+ W_{j,k}^\varepsilon),
+\qquad
+\Delta\theta\sum_k (W_{j,k}^\varepsilon g_k)\,\delta_\theta^2 u_k^\varepsilon
+=
+-\frac{1}{\Delta\theta}\sum_k \delta_\theta^+(W_{j,k}^\varepsilon g_k)\,\delta_\theta^+u_k^\varepsilon.
+\]
+By Lemma~\ref{lem:slope_u}, the discrete slopes of $u^\varepsilon$ are bounded on
+$[0,T]$, hence $\delta_\theta^+ g_k$ satisfies the bound
+$|\delta_\theta^+ g_k|\le C_T \varepsilon^{-1} g_k$. Combining the above identities
+and using Young's inequality, one obtains
+\[
+|\mathcal R_{\varepsilon,j}^{(1)}(t)|+|\mathcal R_{\varepsilon,j}^{(2)}(t)|
+\le
+C_T\,\varepsilon\Delta\theta^2\,
+\Delta\theta\sum_k W_{j,k}^\varepsilon(t)\,e^{u_k^\varepsilon(t)/\varepsilon}
+=
+C_T\,\varepsilon\Delta\theta^2\,\rho_{\varepsilon,j}(t),
+\qquad t\in[0,T].
+\]
+
+\medskip
+\noindent\textbf{Estimate of $\mathcal R_{\varepsilon,j}^{(3)}$.}
+The term $\mathcal R_{\varepsilon,j}^{(3)}$ collects the consistency defects of
+the numerical Hamiltonian $\widehat{\mathcal H}$ and of the conservative flux
+$\widehat F$ with respect to the WKB-weighted product structure.
+In smooth regions, the assumed $q$-th order reconstructions imply that
+\[
+\widehat{\mathcal H}(D_\theta^-u_k^\varepsilon,D_\theta^+u_k^\varepsilon)
+=
+H(\partial_\theta u^\varepsilon(\theta_k))
++O(\Delta\theta^{\,q}),
+\qquad
+\widehat F_{j,k+\frac12}
+=
+F\big(W^\varepsilon(\theta_{k+\frac12}),\partial_\theta u^\varepsilon(\theta_{k+\frac12})\big)
++O(\Delta\theta^{\,q}),
+\]
+with constants depending only on the slope bound from Lemma~\ref{lem:slope_u}.
+Therefore,
+\[
+|\mathcal R_{\varepsilon,j}^{(3)}(t)|
+\le
+C_T\,\Delta\theta^{\,q}\,
+\Delta\theta\sum_k W_{j,k}^\varepsilon(t)\,e^{u_k^\varepsilon(t)/\varepsilon}
+=
+C_T\,\Delta\theta^{\,q}\,\rho_{\varepsilon,j}(t).
+\]
+
+Collecting the above estimates yields
+\[
+|\mathcal R_{\varepsilon,j}(t)|
+\le
+C_T\big(\Delta\theta^q+\varepsilon\Delta\theta^2\big)\rho_{\varepsilon,j}(t),
+\qquad \forall\, t\in[0,T],
+\]
+which proves the lemma.
+\hfill$\square$
+
+
+\textit{Remark.}
+The remainder $\mathcal R_{j,k}^\varepsilon$ collects (i) the discrete chain-rule
+defect associated with the $\theta$-diffusion terms, (ii) the consistency defect
+of the numerical Hamiltonian $\widehat{\mathcal H}$, and (iii) the commutation
+error between the conservative numerical flux and the WKB weight.
+
+
+
+\begin{theorem}[Uniform boundedness of $\rho$]
+There exists a constant $C>0$, independent of $\varepsilon$, such that
+\[
+0 \le \rho_j^\varepsilon(t) \le C,
+\qquad
+\forall\, j=1,\dots,J,\quad t\ge0 .
+\]
+\end{theorem}
+
+\begin{proof}
+Fix $T>0$. We derive the estimate on $[0,T]$ from the semi-discrete
+$(W^\varepsilon,u^\varepsilon)$ system \eqref{eq:semi_discrete_u_detailed}--%
+\eqref{eq:semi_discrete_W_detailed}.
+
+Recall the definition of $\rho_j^\varepsilon(t)$ \eqref{eq:rho}. Differentiating
+in time gives \eqref{eq:rho_chain_identity}. Multiplying
+\eqref{eq:semi_discrete_W_detailed} by $e^{u_k^\varepsilon/\varepsilon}$ and
+\eqref{eq:semi_discrete_u_detailed} by $W_{j,k}^\varepsilon e^{u_k^\varepsilon/\varepsilon}$,
+and then adding the two relations, we obtain \eqref{eq:rho_balance_with_remainder}
+with the remainder $\mathcal R_{j,k}^\varepsilon$ defined therein. Summing
+\eqref{eq:rho_balance_with_remainder} over $k$ and multiplying by $\Delta\theta$,
+we arrive at \eqref{eq:rho_ineq_core}.
+
+Let $M(t)=\max_j \rho_j^\varepsilon(t)$ and choose $j^\ast$ such that
+$M(t)=\rho_{j^\ast}^\varepsilon(t)$. By the discrete maximum principle for the
+spatial operator $A_h$, there exists a constant $C_h>0$ (independent of
+$\varepsilon$) such that
+\[
+(A_h m_\varepsilon)_{j^\ast}\le C_h\,\rho_{j^\ast}^\varepsilon(t)=C_h M(t).
+\]
+Moreover, by Lemma~\ref{lem:R_est}, for $t\in[0,T]$ we have
+\[
+|\mathcal R_{\varepsilon,j^\ast}(t)|
+\le C_T\big(\Delta\theta^q+\varepsilon\Delta\theta^2\big)\,M(t).
+\]
+Evaluating \eqref{eq:rho_ineq_core} at $j=j^\ast$ yields the differential inequality
+\[
+\varepsilon \frac{\mathrm d}{\mathrm dt}M(t)
+\le
+M(t)\Big(K_{\max}+C_h+C_T(\Delta\theta^q+\varepsilon\Delta\theta^2)-M(t)\Big),
+\]
+where $K_{\max}=\max_{x\in\Omega}K(x)$. By comparison with the logistic ODE,
+\[
+0\le M(t)\le \max\Big\{M(0),\,K_{\max}+C_h+C_T(\Delta\theta^q+\varepsilon\Delta\theta^2)\Big\},
+\qquad t\in[0,T].
+\]
+Since $T>0$ is arbitrary, the bound holds for all $t\ge0$. Together with
+Lemma~\ref{lem:positivity_W} (which implies $\rho_j^\varepsilon\ge0$), the proof
+is complete.
+\end{proof}
+
+
+
+
+\begin{theorem}[Discrete Lipschitz estimates for $u$]\label{thm:u_lip}
+Fix $T>0$. Assume that $D(\theta)$ is Lipschitz and that the principal eigenvalue
+$\mathcal H_k(\boldsymbol\rho)$ depends Lipschitz-continuously on $\theta_k$ for
+$\boldsymbol\rho$ in bounded sets. Then there exists $L_T>0$, independent of
+$\varepsilon$, such that
+\[
+\max_{t\in[0,T]}\max_{k}
+\big(|D_\theta^-u_k^\varepsilon(t)|+|D_\theta^+u_k^\varepsilon(t)|\big)\le L_T .
+\]
+\end{theorem}
+
+\begin{proof}
+By Theorem~(Uniform boundedness of $\rho$), there exists $M_T>0$ such that
+$\max_{t\in[0,T]}\max_j \rho_j^\varepsilon(t)\le M_T$.
+Under the stated Lipschitz dependence of the principal eigenvalue on $\theta_k$
+in bounded sets of $\boldsymbol\rho$, we obtain \eqref{eq:source_lip} for some
+constant $C_T$ independent of $\varepsilon$.
+Therefore Lemma~\ref{lem:slope_u} applies and yields the desired estimate.
+\end{proof}
+
+
+
+
+\subsection{A-P}
+
+\begin{theorem}
+    Asymptotic preserving property and trait consistency
+\end{theorem}
+
+\begin{theorem}
+    $|\theta_{h,\epsilon=0}-\theta_{\epsilon=0}| = O(h)$ 
+\end{theorem}
+
+\begin{theorem}
+    Long time evolution towards steady state
+\end{theorem}
+
+% 全离散算法举例与证明修正
+
+% 第四章：数值实验
+\section{Numerical experiments}
+% 精度测试
+% 重构优势
+% 复杂情形 -- 多峰值，2D有限元
+
+\appendix
+\section{Typical choices of the monotone numerical Hamiltonians} \label{append:HJ}
+
+\section{Typical choices of the monotone numerical fluxes} \label{append:flux}
+A representative example is the Godunov (upwind) flux for the linear advection
+flux $F(W)=aW$ with $a=-2\varepsilon p_{k+\frac12}$,
+\[
+\widehat F_{k+\frac12}
+=
+2\varepsilon\!\left(
+p_{k+\frac12}^-\, W_{j,k}
+-
+p_{k+\frac12}^+\, W_{j,k+1}
+\right),
+\qquad
+p^\pm=\max(\pm p,0).
+\]
+\end{document}

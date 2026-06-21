@@ -1,0 +1,179 @@
+--- manuscript_AP_RML.tex	2026-05-23 03:16:52.000000000 +0000
++++ manuscript_AP_RML_timefix_red.tex	2026-05-26 13:01:17.636073387 +0000
+@@ -59,7 +59,8 @@
+ \maketitle
+ 
+ \begin{abstract}
+-The evolution of a dispersal trait is a classical question in evolutionary ecology. A typical phenomenon is that, in the rare mutation regime, the trait distribution concentrates toward a Dirac mass, which makes the accurate numerical capture of the fittest trait difficult. In this paper, we consider a WKB reformulation of a dispersal evolution model and propose a semi-discrete numerical method for resolving the concentration in the trait direction without using prohibitively fine trait grids. We present the detailed semi-discrete scheme, establish positivity of the amplitude variable, and derive a fixed-grid stationary AP structure under an explicit one-sided stability condition on the weighted WKB remainder. We also identify a density-compatible WKB variant for which this remainder condition follows from discrete summation by parts. These results clarify both the useful structure and the current limitations of the method. Numerical experiments are organized to compare the proposed WKB formulation with direct discretizations, to monitor the weighted remainder, and to illustrate its advantage in locating the fittest trait in the small-mutation regime.
++The evolution of a dispersal trait is a classical question in evolutionary ecology. A typical phenomenon is that, in the rare mutation regime, the trait distribution concentrates toward a Dirac mass, which makes the accurate numerical capture of the fittest trait difficult. In this paper, we consider a WKB reformulation of a dispersal evolution model and propose a semi-discrete numerical method for resolving the concentration in the trait direction without using prohibitively fine trait grids. We present the detailed semi-discrete scheme, establish positivity of the amplitude variable, and derive a fixed-grid stationary AP structure under an explicit one-sided stability condition on the weighted WKB remainder. We also identify a density-compatible WKB variant for which this remainder condition follows from discrete summation by parts. These results clarify both the useful structure and the current limitations of the method. {
++\color{red} We also specify the fully discrete implementation used in the revised code: a time-density-compatible integrating-factor amplitude update, a Patankar production--destruction reaction option, a gauge-invariant residual, and an optional adaptive time-step safeguard.} Numerical experiments are organized to compare the proposed WKB formulation with direct discretizations, to monitor the weighted remainder, and to illustrate its advantage in locating the fittest trait in the small-mutation regime.
+ \end{abstract}
+ 
+ {\bf Key words. } dispersal evolution, trait concentration, WKB ansatz, asymptotic-preserving method, Hamilton--Jacobi equation, principal eigenvalue.
+@@ -112,7 +113,7 @@
+ 
+ The present paper is organized around this computational viewpoint. Our main goal is to develop and study a WKB-based numerical strategy that is able to capture trait concentration more efficiently than direct discretizations of the original model. To this end, we first derive a semi-discrete formulation for the phase and amplitude variables. We then specify a concrete numerical method based on a monotone discretization of the Hamilton--Jacobi part and a positivity-preserving discretization of the amplitude equation. At the analytical level, we establish positivity of the amplitude and derive a stationary, fixed-grid AP structure under transparent reconstruction and one-sided remainder stability assumptions. Since the WKB split does not automatically provide an exact discrete chain rule, we also record a density-compatible variant that restores a conservative density-level balance and makes the weighted remainder estimate verifiable. On the numerical side, our experiments are designed to compare the original discretization and the WKB formulation directly, to track the remainder diagnostic, and to test the accurate capture of the fittest trait when $\varepsilon$ is small.
+ 
+-The paper is organized as follows. In Section~2 we recall the WKB ansatz and the formal steady-state rare mutation limit that motivate the numerical formulation. In Section~3 we present the semi-discrete scheme, prove positivity, and derive the conditional stationary AP structure, including the density-compatible variant that controls the weighted remainder. Section~4 is devoted to numerical experiments, where we compare the WKB formulation with direct discretizations, examine its performance in the concentration regime, and monitor the remainder diagnostic. The appendices collect typical choices of monotone numerical Hamiltonians and monotone numerical fluxes, a fully discrete realization, and sufficient conditions for the one-sided remainder bound.
++The paper is organized as follows. In Section~2 we recall the WKB ansatz and the formal steady-state rare mutation limit that motivate the numerical formulation. In Section~3 we present the semi-discrete scheme, prove positivity, and derive the conditional stationary AP structure, including the density-compatible variant that controls the weighted remainder. Section~4 is devoted to numerical experiments, where we compare the WKB formulation with direct discretizations, examine its performance in the concentration regime, and monitor the remainder diagnostic. The appendices collect typical choices of monotone numerical Hamiltonians and monotone numerical fluxes, a fully discrete realization, and sufficient conditions for the one-sided remainder bound. {\color{red} Appendix~\ref{app:reconstruction} has been expanded to distinguish the older semi-discrete-compatible time update from the revised fully time-density-compatible implementation.}
+ 
+ 
+ %===================================================================================================
+@@ -1218,7 +1219,7 @@
+     \qquad
+     W_{j,k}^n\leftarrow W_{j,k}^n\exp(c^n/\varepsilon),
+ \end{equation}
+-which preserves the reconstructed density \(W_{j,k}^n\exp(u_k^n/\varepsilon)\).
++which preserves the reconstructed density \(W_{j,k}^n\exp(u_k^n/\varepsilon)\). {\color{red} In the revised implementation, the default WKB amplitude step is the time-density-compatible integrating-factor update described in Appendix~\ref{app:reconstruction}. The older split update and the older semi-discrete density-compatible fully discrete update remain available as code options for comparison. The revised default reaction treatment is the Patankar production--destruction form, while the old linear implicit reaction can still be selected by setting the corresponding code option to ``implicit''.}
+ 
+ The trait marginal, selected traits, and concentration width are computed as
+ \begin{equation}\label{eq:diagnostics_trait_new}
+@@ -1249,16 +1250,28 @@
+     \qquad
+     R_j^{\varepsilon,D}=\Delta\theta\sum_{k=1}^{K}\frac{R_{j,k}^\varepsilon}{D_k}.
+ \end{equation}
+-A bounded value of \(\Gamma_R^\varepsilon\) as \(\varepsilon\) decreases is not a proof of Assumption~\ref{ass:remainder_stability}, but it is a useful numerical diagnostic for the positive part of the weighted defect.  The computation is stopped when
++A bounded value of \(\Gamma_R^\varepsilon\) as \(\varepsilon\) decreases is not a proof of Assumption~\ref{ass:remainder_stability}, but it is a useful numerical diagnostic for the positive part of the weighted defect. {\color{red} Since \(W\) itself changes under the max-gauge normalization \eqref{eq:gauge_new}, the revised WKB code uses a gauge-invariant stopping residual.  With
++\[
++    \widetilde u^n_k=u^n_k-\max_\ell u^n_\ell,
++    \qquad
++    n^n_{j,k}=W^n_{j,k}\exp(u^n_k/\varepsilon),
++\]
++the default residual is
+ \begin{equation}\label{eq:stationary_residual_new}
+-    E^n=
++    E^n_{\rm gi}=
+     \max\left\{
+-    \frac{\|u^{n+1}-u^n\|_\infty}{\tau},
+-    \frac{\|W^{n+1}-W^n\|_\infty}{\tau(1+\|W^{n+1}\|_\infty)}
+-    \right\}
+-    \le 10^{-9}.
++    \frac{\|\widetilde u^{n+1}-\widetilde u^n\|_\infty}{\tau_n},
++    \frac{\|n^{n+1}-n^n\|_\infty}{\tau_n(1+\|n^{n+1}\|_\infty)}
++    \right\}.
+ \end{equation}
+-For the direct density solver, the analogous residual is computed with \(n^{n+1}-n^n\).
++The computation is stopped when \(E^n_{\rm gi}\le10^{-9}\).  The legacy residual
++\[
++    \max\left\{
++    \frac{\|u^{n+1}-u^n\|_\infty}{\tau_n},
++    \frac{\|W^{n+1}-W^n\|_\infty}{\tau_n(1+\|W^{n+1}\|_\infty)}
++    \right\}
++\]
++is still stored as a diagnostic, but it is no longer used by default for stopping because it may be dominated by a pure gauge rescaling of \(W\).}  For the direct density solver, the analogous residual is computed with \(n^{n+1}-n^n\).
+ 
+ \subsection{Test 1: numerical verification of the structural assumptions}\label{subsec:test_assumptions_new}
+ 
+@@ -1632,7 +1645,7 @@
+ \end{equation}
+ The older implementation used an IMEX variant in which the transport term and the curvature term \(-2\varepsilon W\delta_\theta^2u\) were evaluated with the old amplitude and placed on the right-hand side.  This is a legitimate implementation variant, but the positivity and stationary AP statements in the main text correspond most directly to the semi-discrete scheme and to implicit or sufficiently stable time discretizations.
+ 
+-For the density-compatible WKB variant, the amplitude update is
++For the semi-discrete density-compatible WKB variant, the older fully discrete amplitude update is
+ \begin{equation}\label{eq:fully_dc_new}
+ \begin{aligned}
+     &\varepsilon\frac{W_{j,k}^{n+1}-W_{j,k}^n}{\tau}
+@@ -1653,6 +1666,78 @@
+ \]
+ are formed directly.
+ 
++{\color{red}
++The revised code uses, by default, a time-direction density-compatible integrating-factor update.  Let
++\begin{equation}\label{eq:q_factor_new}
++    E_k^n=\exp(u_k^n/\varepsilon),
++    \qquad
++    q_k^{n+1}=\frac{E_k^n}{E_k^{n+1}}
++    =\exp\left(\frac{u_k^n-u_k^{n+1}}{\varepsilon}\right).
++\end{equation}
++The fully discrete amplitude equation is then written as
++\begin{equation}\label{eq:fully_dc_if_new}
++\begin{aligned}
++    &\varepsilon\frac{W_{j,k}^{n+1}-q_k^{n+1}W_{j,k}^n}{\tau_n}
++    -D_k\delta_x^2W_{j,k}^{n+1}
++    -\varepsilon^2(E_k^{n+1})^{-1}
++      \delta_\theta^2\bigl(W_{j,\cdot}^{n+1}E_{\cdot}^{n+1}\bigr)_k  \\
++    &\qquad = (K_j-\rho_j^n)W_{j,k}^{n+1}.
++\end{aligned}
++\end{equation}
++Multiplying \eqref{eq:fully_dc_if_new} by \(E_k^{n+1}\) gives exactly the density-level update
++\begin{equation}\label{eq:density_level_if_new}
++    \varepsilon\frac{n_{j,k}^{n+1}-n_{j,k}^n}{\tau_n}
++    -D_k\delta_x^2n_{j,k}^{n+1}
++    -\varepsilon^2\delta_\theta^2n_{j,k}^{n+1}
++    =(K_j-\rho_j^n)n_{j,k}^{n+1}.
++\end{equation}
++Thus the terms involving \(H^n\), \(\widehat H\), and \(\delta_\theta^2u^{n+1}\) are no longer separately approximated in the amplitude equation; their contribution is absorbed by the factor \(q_k^{n+1}\).  This removes the time-discrete WKB chain-rule defect that appears when \(u\) and \(W\) are advanced independently.
++
++To improve positivity with respect to the density reaction, the revised code also provides the Patankar production--destruction form.  With
++\[
++    r_j^n=K_j-\rho_j^n,
++    \qquad
++    (r_j^n)_+=\max(r_j^n,0),
++    \qquad
++    (r_j^n)_-=\max(-r_j^n,0),
++\]
++\eqref{eq:density_level_if_new} is replaced by
++\begin{equation}\label{eq:density_patankar_new}
++    \varepsilon\frac{n_{j,k}^{n+1}-n_{j,k}^n}{\tau_n}
++    -D_k\delta_x^2n_{j,k}^{n+1}
++    -\varepsilon^2\delta_\theta^2n_{j,k}^{n+1}
++    =(r_j^n)_+n_{j,k}^n-(r_j^n)_-n_{j,k}^{n+1}.
++\end{equation}
++Equivalently, in the WKB amplitude variable,
++\begin{equation}\label{eq:w_patankar_new}
++\begin{aligned}
++    &\varepsilon\frac{W_{j,k}^{n+1}-q_k^{n+1}W_{j,k}^n}{\tau_n}
++    -D_k\delta_x^2W_{j,k}^{n+1}
++    -\varepsilon^2(E_k^{n+1})^{-1}
++      \delta_\theta^2\bigl(W_{j,\cdot}^{n+1}E_{\cdot}^{n+1}\bigr)_k \\
++    &\qquad=(r_j^n)_+q_k^{n+1}W_{j,k}^n-(r_j^n)_-W_{j,k}^{n+1}.
++\end{aligned}
++\end{equation}
++This is the default reaction option in the revised code; setting the reaction option to ``implicit'' recovers \eqref{eq:fully_dc_if_new}.}
++
++{\color{red}
++The optional adaptive time step used in the code is
++\begin{equation}\label{eq:adaptive_dt_new}
++    \tau_n
++    =\min\left\{\tau_{\max},
++    \eta\frac{\varepsilon}{\max\{1,\Lambda_r^n,\Lambda_H^n\}}\right\},
++    \qquad
++    \eta\in(0,1),
++\end{equation}
++where \(\Lambda_H^n=\max_k |H_k^n|\).  For the split update one uses
++\[
++    \Lambda_r^n=\max_{j,k}\bigl(K_j-\rho_j^n+H_k^n-2\varepsilon\delta_\theta^2u_k^n\bigr)_+,
++\]
++whereas for the time-density-compatible update one uses \(\Lambda_r^n=\max_j(K_j-\rho_j^n)_+\).  In the implementation this safeguard is optional; if it is disabled, \(\tau_n=\tau_{\max}\) except for the last step.}
++
++{\color{red}
++The main changes in the revised code are therefore: (i) the default amplitude option is the integrating-factor update \eqref{eq:w_patankar_new}; (ii) the old W-based stopping residual is replaced by the gauge-invariant residual \eqref{eq:stationary_residual_new}; (iii) the Patankar reaction option is enabled by default; and (iv) the adaptive time-step restriction \eqref{eq:adaptive_dt_new} can be turned on when large prescribed time steps are used.}
++
+ \section{A sufficient condition for the one-sided remainder bound}\label{app:remainder}
+ 
+ For the density-compatible variant, the reconstructed density satisfies the conservative density equation exactly at the semi-discrete level.  Hence, in the notation of \eqref{eq:semi_discrete_n},
+@@ -1696,7 +1781,7 @@
+ 
+ \section{Direct density solver and two-dimensional finite-element realization}\label{app:direct_2d}
+ 
+-For comparison, the original density equation is discretized by
++For comparison, the original density equation can be discretized by the old linear implicit update
+ \begin{equation}\label{eq:direct_density_fully_new}
+     \varepsilon\frac{n_{j,k}^{n+1}-n_{j,k}^n}{\tau}
+     -D_k\delta_x^2n_{j,k}^{n+1}
+@@ -1705,7 +1790,14 @@
+     \qquad
+     \rho_j^n=\Delta\theta\sum_k n_{j,k}^n.
+ \end{equation}
+-The same spatial and trait grids are used for the direct and WKB solvers in the one-dimensional comparison tests.
++{\color{red} In the revised code, the direct density solver also accepts the Patankar reaction option
++\begin{equation}\label{eq:direct_density_patankar_new}
++    \varepsilon\frac{n_{j,k}^{n+1}-n_{j,k}^n}{\tau}
++    -D_k\delta_x^2n_{j,k}^{n+1}
++    -\varepsilon^2\delta_\theta^2n_{j,k}^{n+1}
++    =(K_j-\rho_j^n)_+n_{j,k}^n-(K_j-\rho_j^n)_-n_{j,k}^{n+1}.
++\end{equation}
++This option is used to match the positivity-oriented WKB update when direct and WKB runs are compared.} The same spatial and trait grids are used for the direct and WKB solvers in the one-dimensional comparison tests.
+ 
+ For the two-dimensional spatial experiment, the spatial Laplacian and the eigenvalue problem are discretized by linear finite elements on a triangular mesh.  For each trait node \(\theta_k\), the discrete effective Hamiltonian is computed from the generalized eigenvalue problem
+ \begin{equation}\label{eq:fem_H_new}

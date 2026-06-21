@@ -1,0 +1,658 @@
+\documentclass[11pt,a4paper]{ctexart}
+
+% \usepackage{showlabels} % 需要显示标签时再打开
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+
+\usepackage[margin=1in]{geometry}
+
+\usepackage{tikz}
+\usetikzlibrary{
+    arrows.meta,
+    positioning,
+    fit,
+    calc,
+    shapes.geometric
+}
+
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
+}
+
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0.5em}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{remark}{Remark}[section]
+\newtheorem{assumption}{Assumption}[section]
+
+\title{WKB 数值格式与 AP 理论分析技术路线图}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{当前工作的定位}
+
+当前工作的核心目标不是完整证明全离散 AP 定理，而是建立一个面向稀有突变极限的 WKB 数值格式框架。主要任务包括格式构造、正性保持、重构密度方程推导、条件型稳定判据以及数值验证。
+
+这篇文章应当收缩为如下主线
+\[
+\text{WKB 格式构造}
+\quad\Longrightarrow\quad
+\text{正性保持}
+\quad\Longrightarrow\quad
+\text{重构密度方程}
+\quad\Longrightarrow\quad
+\text{条件型密度稳定性}
+\quad\Longrightarrow\quad
+\text{数值验证}.
+\]
+其中完整的 uniform-in-\(\varepsilon\) AP 稳定性证明不在本文中展开，而作为后续理论工作的主要方向。
+
+\section{当前文章主线}
+
+当前文章建议采用如下技术路线。
+
+\begin{enumerate}
+\item 建立 WKB 重构
+\[
+    n_{j,k}^\varepsilon
+    =
+    W_{j,k}^\varepsilon
+    E_k^\varepsilon,
+    \qquad
+    E_k^\varepsilon
+    =
+    \exp\left(\frac{u_k^\varepsilon}{\varepsilon}\right).
+\]
+
+\item 区分分析用质量与实际重构密度
+\[
+    m_j^\varepsilon
+    =
+    \Delta\theta
+    \sum_{k=1}^K
+    n_{j,k}^\varepsilon,
+    \qquad
+    \rho_{j,Q}^\varepsilon
+    =
+    Q_\theta^\varepsilon[W_{j,\cdot}^\varepsilon,u^\varepsilon].
+\]
+
+\item 推导重构密度方程
+\[
+    \varepsilon \frac{d}{dt} n_{j,k}^\varepsilon
+    -
+    D_k \delta_x^2 n_{j,k}^\varepsilon
+    =
+    (K_j-\rho_{j,Q}^\varepsilon)n_{j,k}^\varepsilon
+    +
+    R_{j,k}^\varepsilon.
+\]
+
+\item 证明正性保持
+\[
+    W_{j,k}^\varepsilon\ge0,
+    \qquad
+    n_{j,k}^\varepsilon\ge0.
+\]
+
+\item 引入条件型稳定判据。若
+\[
+    \rho_{j,Q}^\varepsilon
+    \ge
+    c_Q m_j^\varepsilon-e_Q
+\]
+且
+\[
+    \mathcal R_j^{\varepsilon,D}
+    \le
+    C_R m_j^\varepsilon+r_h,
+\]
+则可以恢复类似连续情形的密度上界。
+
+\item 说明该结论是 conditional stability criterion，而不是完整 AP theorem。
+
+\item 通过数值实验验证 WKB 方法在小 \(\varepsilon\) 下能够稳定捕捉 fittest trait，尤其展示 Laplace-type reconstruction 相比 direct quadrature 的优势。
+\end{enumerate}
+
+\section{后续完整 AP 理论路线}
+
+完整 AP 证明可作为后续独立工作，核心是闭合如下 bootstrap 链条
+\[
+\text{初值准备}
+\Longrightarrow
+m^\varepsilon,\rho_Q^\varepsilon \text{ 有界}
+\Longrightarrow
+u^\varepsilon \text{ 离散 Lipschitz 估计}
+\Longrightarrow
+W^\varepsilon \text{ 加权差分估计}
+\Longrightarrow
+\mathcal R^{\varepsilon,D} \text{ 一侧控制}
+\Longrightarrow
+\text{完整 AP 稳定性}.
+\]
+
+其中最困难的部分是离散相变量的 Bernstein 型估计和 trait-direction remainder 的闭合控制。
+
+\newpage
+
+\section{技术路线图}
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tikzpicture}[
+    font=\small,
+    node distance=0.9cm and 1.1cm,
+    box/.style={
+        rectangle,
+        rounded corners=2mm,
+        draw=blue!65!black,
+        thick,
+        align=center,
+        minimum height=0.85cm,
+        text width=3.4cm,
+        fill=blue!4
+    },
+    mainbox/.style={
+        rectangle,
+        rounded corners=2mm,
+        draw=blue!70!black,
+        very thick,
+        align=center,
+        minimum height=1.0cm,
+        text width=4.5cm,
+        fill=blue!8
+    },
+    greenbox/.style={
+        rectangle,
+        rounded corners=2mm,
+        draw=teal!70!black,
+        thick,
+        align=center,
+        minimum height=0.85cm,
+        text width=3.5cm,
+        fill=teal!6
+    },
+    yellowbox/.style={
+        rectangle,
+        rounded corners=2mm,
+        draw=orange!85!black,
+        thick,
+        align=center,
+        minimum height=0.85cm,
+        text width=3.6cm,
+        fill=yellow!18
+    },
+    futurebox/.style={
+        rectangle,
+        rounded corners=2mm,
+        draw=purple!70!black,
+        thick,
+        align=center,
+        minimum height=0.85cm,
+        text width=3.5cm,
+        fill=purple!5
+    },
+    arrow/.style={
+        -{Stealth[length=2.3mm]},
+        thick,
+        draw=blue!65!black
+    },
+    futurearrow/.style={
+        -{Stealth[length=2.3mm]},
+        thick,
+        draw=purple!70!black
+    },
+    title/.style={
+        font=\Large\bfseries,
+        text=blue!70!black
+    }
+]
+
+\node[title] (title) at (0,0) {WKB 数值格式与 AP 理论技术路线};
+
+\node[
+    mainbox,
+    text width=12.2cm,
+    below=0.55cm of title
+] (problem) {
+\textbf{研究问题}\\[1mm]
+小突变参数 \(\varepsilon\) 下，原始密度
+\(n^\varepsilon(x,\theta,t)\) 在 trait 方向高度集中。\\
+直接离散需要极细 trait 网格，难以稳定捕捉 fittest trait。
+};
+
+\node[
+    mainbox,
+    below=0.9cm of problem
+] (wkb) {
+\textbf{WKB 重构}\\[1mm]
+\[
+n^\varepsilon=W^\varepsilon\exp(u^\varepsilon/\varepsilon)
+\]\\[-1mm]
+相变量 \(u^\varepsilon\) 用于定位优势性状。
+};
+
+\draw[arrow] (problem) -- (wkb);
+
+\node[
+    greenbox,
+    below left=1.0cm and 4.6cm of wkb
+] (continuous) {
+\textbf{连续理论目标}\\[1mm]
+稀有突变极限\\
+\((N_m,\theta_m)\)\\
+\(\theta_m=\arg\max u\)
+};
+
+\node[
+    box,
+    below=1.0cm of wkb
+] (scheme) {
+\textbf{半离散格式构造}\\[1mm]
+空间离散\\
+trait 方向离散\\
+Hamiltonian 与 flux
+};
+
+\node[
+    greenbox,
+    below right=1.0cm and 4.6cm of wkb
+] (fully) {
+\textbf{全离散实现}\\[1mm]
+时间推进\\
+特征值求解\\
+Laplace 重构
+};
+
+\draw[arrow] (wkb.south west) -- (continuous.north);
+\draw[arrow] (wkb.south) -- (scheme.north);
+\draw[arrow] (wkb.south east) -- (fully.north);
+
+\node[
+    mainbox,
+    text width=13.5cm,
+    below=1.25cm of scheme
+] (currenttitle) {
+\textbf{当前文章采用的收缩路线}\\
+WKB 数值格式、结构性质、条件型稳定判据与数值验证
+};
+
+\node[
+    box,
+    below left=0.9cm and 5.5cm of currenttitle
+] (pos) {
+\textbf{正性保持}\\[1mm]
+\(W_{j,k}^\varepsilon\ge0\)\\
+\(n_{j,k}^\varepsilon\ge0\)
+};
+
+\node[
+    box,
+    right=0.65cm of pos
+] (densityeq) {
+\textbf{重构密度方程}\\[1mm]
+推导
+\[
+\varepsilon d_t n-D\delta_x^2 n
+=
+(K-\rho_Q)n+R
+\]
+};
+
+\node[
+    yellowbox,
+    right=0.65cm of densityeq
+] (criterion) {
+\textbf{条件型密度稳定性}\\[1mm]
+若
+\[
+\rho_Q\gtrsim m,
+\qquad
+\mathcal R\lesssim m+r_h
+\]
+则 \(m\le C\)
+};
+
+\node[
+    box,
+    right=0.65cm of criterion
+] (consistency) {
+\textbf{一致性结构}\\[1mm]
+代入光滑真解时\\
+weighted remainder\\
+对应连续 mutation 项
+};
+
+\node[
+    greenbox,
+    right=0.65cm of consistency
+] (numerics) {
+\textbf{数值验证}\\[1mm]
+固定网格\\
+小 \(\varepsilon\) 测试\\
+捕捉 fittest trait
+};
+
+\draw[arrow] (currenttitle) -- (pos);
+\draw[arrow] (pos) -- (densityeq);
+\draw[arrow] (densityeq) -- (criterion);
+\draw[arrow] (criterion) -- (consistency);
+\draw[arrow] (consistency) -- (numerics);
+
+\node[
+    mainbox,
+    text width=13.5cm,
+    below=2.15cm of densityeq
+] (futuretitle) {
+\textbf{后续完整 AP 理论路线}\\
+uniform-in-\(\varepsilon\) 稳定性、闭合 bootstrap 与 AP 收敛证明
+};
+
+\node[
+    futurebox,
+    below left=0.9cm and 5.5cm of futuretitle
+] (init) {
+\textbf{初值准备}\\[1mm]
+\(m(0)\) 有界\\
+\(u(0)\) 斜率有界\\
+\(W(0)\) 加权差分有界
+};
+
+\node[
+    futurebox,
+    right=0.65cm of init
+] (densitybound) {
+\textbf{含时密度界}\\[1mm]
+利用加权密度方程\\
+和 parabolic maximum principle
+};
+
+\node[
+    futurebox,
+    right=0.65cm of densitybound
+] (ulip) {
+\textbf{相变量估计}\\[1mm]
+离散 Lipschitz\\
+或 Bernstein 型估计
+};
+
+\node[
+    futurebox,
+    right=0.65cm of ulip
+] (wbv) {
+\textbf{振幅估计}\\[1mm]
+加权 BV\\
+或一阶差分控制
+};
+
+\node[
+    futurebox,
+    right=0.65cm of wbv
+] (ap) {
+\textbf{完整 AP 定理}\\[1mm]
+闭合 remainder control\\
+证明 AP convergence
+};
+
+\draw[futurearrow] (futuretitle) -- (init);
+\draw[futurearrow] (init) -- (densitybound);
+\draw[futurearrow] (densitybound) -- (ulip);
+\draw[futurearrow] (ulip) -- (wbv);
+\draw[futurearrow] (wbv) -- (ap);
+
+\draw[
+    futurearrow,
+    dashed
+] (criterion.south) -- node[
+    right,
+    text width=3.1cm,
+    align=left,
+    font=\scriptsize,
+    text=purple!70!black
+] {
+当前文章识别关键稳定条件，\\
+后续文章尝试完整验证
+} (futuretitle.north);
+
+\node[
+    draw=blue!70!black,
+    rounded corners=2mm,
+    thick,
+    fit=(pos)(numerics)(currenttitle),
+    inner sep=0.35cm
+] {};
+
+\node[
+    draw=purple!70!black,
+    rounded corners=2mm,
+    thick,
+    fit=(init)(ap)(futuretitle),
+    inner sep=0.35cm
+] {};
+
+\end{tikzpicture}
+}
+\caption{当前 WKB 数值方法文章与后续完整 AP 理论分析的技术路线。}
+\label{fig:technical_route}
+\end{figure}
+
+\newpage
+
+\section{后续理论工作的关键难点}
+
+后续完整 AP 理论需要解决以下关键问题。
+
+\subsection{一侧 remainder control 的验证}
+
+当前文章中使用的条件型稳定判据为
+\[
+    \mathcal R_j^{\varepsilon,D}
+    \le
+    C_R m_j^\varepsilon+r_h.
+\]
+后续需要从格式结构出发证明该估计，而不是将其作为假设。困难在于 WKB 离散后不再具有精确链式法则，\(R_{j,k}^\varepsilon\) 中同时包含
+\[
+\varepsilon^2 E_k^\varepsilon\delta_\theta^2 W_{j,k}^\varepsilon,
+\qquad
+\varepsilon n_{j,k}^\varepsilon\delta_\theta^2u_k^\varepsilon,
+\qquad
+n_{j,k}^\varepsilon\widehat H,
+\qquad
+\varepsilon E_k^\varepsilon\mathcal D_\theta\widehat{\mathcal F}.
+\]
+这些项不能简单逐项控制，需要结合相变量和振幅变量的稳定性。
+
+\subsection{离散相变量估计}
+
+连续理论中，\(u^\varepsilon\) 的 Lipschitz 估计通常通过 Bernstein 方法获得。离散情形更困难，原因包括
+\[
+\text{缺少精确链式法则},
+\qquad
+\text{数值 Hamiltonian 可能非光滑},
+\qquad
+\text{常数可能依赖网格尺度}.
+\]
+后续可以考虑两条路线。
+
+第一条是直接对离散 HJ 方程建立差分梯度估计。第二条是通过某种特征值型相变量构造，先得到正特征向量，再取对数得到相函数。
+
+\subsection{含时 bootstrap 闭合}
+
+更自然的完整证明路线是含时 bootstrap。设初值 well-prepared，并假设在 \([0,T_*]\) 上已有粗略界
+\[
+    m^\varepsilon\le M,
+    \qquad
+    |D_\theta^\pm u^\varepsilon|\le L,
+    \qquad
+    \text{weighted variation of } W^\varepsilon \le M_W.
+\]
+然后依次证明更好的密度界、相变量估计、振幅估计和 remainder control。若这些估计可以闭合，则可推出 \(T_*=T\)，从而得到 uniform-in-\(\varepsilon\) 稳定性。
+
+\section{当前文章建议保留的表述}
+
+当前文章中建议使用如下措辞。
+
+\begin{quote}
+The present analysis should be understood as an AP-oriented structural
+analysis rather than a complete uniform-in-\(\varepsilon\) convergence
+theorem. We identify the key one-sided remainder condition under which the
+discrete density estimate can be recovered. A full AP theorem would require
+additional stability estimates for the phase and amplitude variables and is
+left for future work.
+\end{quote}
+
+
+
+
+\section{部分移除的性质}
+\begin{lemma}[Local-in-time discrete bounds for the phase]\label{lem:slope_u}
+Assume that
+\[
+\max_k u_k^\varepsilon(0)\le C_0\varepsilon,
+\qquad
+\max_k\Bigl(|D_\theta^-u_k^\varepsilon(0)|+|D_\theta^+u_k^\varepsilon(0)|\Bigr)\le L_0,
+\]
+and that the initial density \(\rho_j^\varepsilon(0)\) is bounded in space. Then there exist \(T>0\), possibly depending on \(\varepsilon\), and constants \(C_T\), \(L_T>0\) such that
+\[
+\max_{t\in[0,T]}\max_k u_k^\varepsilon(t)\le C_T\varepsilon,
+\qquad
+\max_{t\in[0,T]}\max_k\Bigl(|D_\theta^-u_k^\varepsilon(t)|+|D_\theta^+u_k^\varepsilon(t)|\Bigr)\le L_T.
+\]
+\end{lemma}
+
+\begin{proof}
+The semi-discrete equations form a finite-dimensional ODE system with locally Lipschitz right-hand side. Hence local solutions exist for each fixed \(\varepsilon\). Continuity in time and boundedness of the discrete source term \(\mathcal H_k(\boldsymbol\rho(t))\) on a short time interval imply local bounds for the one-sided trait slopes of \(u^\varepsilon\). The phase equation \eqref{eq:semi_discrete_u_detailed} then gives a local bound for \(\partial_t u_k^\varepsilon\), which yields the stated estimate after possibly shrinking the time interval.
+\end{proof}
+
+\begin{lemma}[Local-in-time weighted first-difference bound for the amplitude]\label{lem:W_diff}
+Assume that \(W_{j,k}^\varepsilon(0)\ge0\) for all \(j\) and \(k\). Then there exists \(T>0\) such that, for all \(t\in[0,T]\) and all \(j\),
+\begin{equation}\label{eq:weighted_first_diff_W_simple}
+\Delta\theta\sum_{k=1}^K
+\exp\!\bigl(u_k^\varepsilon(t)/\varepsilon\bigr)\,|\delta_\theta^+ W_{j,k}^\varepsilon(t)|
+\le
+M_T\,\rho_{\varepsilon,j}(t),
+\qquad
+\delta_\theta^+W_{j,k}^\varepsilon=
+\frac{W_{j,k+1}^\varepsilon-W_{j,k}^\varepsilon}{\Delta\theta}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Set \(g_k(t)=\exp(u_k^\varepsilon(t)/\varepsilon)\). By Lemma~\ref{lem:positivity_W}, we have \(W_{j,k}^\varepsilon(t)\ge0\) on the local existence interval. Hence
+\[
+|W_{j,k+1}^\varepsilon(t)-W_{j,k}^\varepsilon(t)|
+\le W_{j,k+1}^\varepsilon(t)+W_{j,k}^\varepsilon(t).
+\]
+Summing against the weights \(g_k(t)\) produces two terms. One is exactly \(\rho_{\varepsilon,j}(t)\). The other is controlled by comparing neighboring weights, which is possible thanks to the local slope bound for \(u^\varepsilon\) from Lemma~\ref{lem:slope_u}. This yields \eqref{eq:weighted_first_diff_W_simple}.
+\end{proof}
+
+
+
+\begin{proposition}[Conditional continuation criterion]\label{prop:conditional_cont}
+Fix \(T>0\). Assume that a semi-discrete solution \((u^\varepsilon,W^\varepsilon)\) of \eqref{eq:semi_discrete_u_detailed}--\eqref{eq:semi_discrete_W_detailed} satisfies
+\[
+0\le \rho_j^\varepsilon(t)\le \overline\rho_T,
+\qquad
+\forall\,j=1,\dots,J,\ t\in[0,T],
+\]
+for some constant \(\overline\rho_T\) independent of \(\varepsilon\). Assume moreover that \(D(\theta)\) is Lipschitz and that the discrete principal eigenvalue \(\mathcal H_k(\boldsymbol\rho)\) depends Lipschitz-continuously on \(\theta_k\) whenever \(\boldsymbol\rho\) stays in bounded sets. Then the local bounds of Lemmas~\ref{lem:slope_u} and \ref{lem:W_diff} extend to the whole interval \([0,T]\). In particular, there exist constants \(C_T\), \(L_T\), and \(M_T\), independent of \(\varepsilon\), such that
+\[
+\max_{t\in[0,T]}\max_k u_k^\varepsilon(t)\le C_T\varepsilon,
+\qquad
+\max_{t\in[0,T]}\max_k\Bigl(|D_\theta^-u_k^\varepsilon(t)|+|D_\theta^+u_k^\varepsilon(t)|\Bigr)\le L_T,
+\]
+and
+\[
+\Delta\theta\sum_{k=1}^K
+\exp\!\bigl(u_k^\varepsilon(t)/\varepsilon\bigr)\,|\delta_\theta^+ W_{j,k}^\varepsilon(t)|
+\le M_T\,\rho_{\varepsilon,j}(t),
+\qquad \forall\,t\in[0,T],\ \forall\,j.
+\]
+\end{proposition}
+
+\begin{proof}
+The proof is a continuation argument. The local estimates in Lemmas~\ref{lem:slope_u} and \ref{lem:W_diff} depend only on boundedness of the coefficients in the ODE system. Once \(\rho^\varepsilon\) is bounded on \([0,T]\), the discrete effective Hamiltonian remains bounded and Lipschitz with constants depending only on \(T\) and the data. The local estimates can therefore be restarted from any intermediate time and continued to the whole interval.
+\end{proof}
+
+
+
+%===================
+\begin{lemma}[Consistency of the weighted trait remainder evaluated at the exact solution]\label{lem:consistency_R_divD}
+Let \((u^\varepsilon,W^\varepsilon)\) be the exact solution pair of the continuous WKB system \eqref{eq:WKB_reformulation}, and define
+\[
+n^\varepsilon(x,\theta,t)=W^\varepsilon(x,\theta,t)e^{u^\varepsilon(\theta,t)/\varepsilon}.
+\]
+Let \(\{\theta_k\}_{k=1}^K\) be a uniform periodic grid with step size \(\Delta\theta\), and define
+\[
+u_k^\varepsilon(t)=u^\varepsilon(\theta_k,t),
+\qquad
+W_{j,k}^\varepsilon(t)=W^\varepsilon(x_j,\theta_k,t),
+\qquad
+n_{j,k}^\varepsilon(t)=n^\varepsilon(x_j,\theta_k,t).
+\]
+Let \(D_k=D(\theta_k)\), \(\alpha_k=1/D_k\), and let \(R_{j,k}^\varepsilon(t)\) be defined by \eqref{eq:R_exact} with the same numerical Hamiltonian \(\widehat H\) and numerical flux \(\widehat F\) as in the scheme. Define the weighted aggregate remainder
+\[
+\mathcal R_j^{\varepsilon,D}(t)
+:=
+\Delta\theta\sum_{k=1}^K \alpha_k R_{j,k}^\varepsilon(t).
+\]
+Assume that \(D\in W^{2,\infty}(\mathbb T)\) with \(D\ge D_{\min}>0\), that
+\[
+u^\varepsilon(\cdot,t)\in W^{3,\infty}(\mathbb T),
+\qquad
+W^\varepsilon(x_j,\cdot,t)\in W^{2,\infty}(\mathbb T),
+\qquad t\in[0,T],
+\]
+and that \(\widehat H\) and \(\widehat F\) are consistent first-order monotone approximations of their continuous counterparts and are Lipschitz in their arguments. Then, for each fixed \(\varepsilon>0\), there exists a constant \(C_{\rm cons}(\varepsilon)>0\), independent of \(\Delta\theta\), such that
+\begin{equation}\label{eq:consistency_main}
+\left|
+\mathcal R_j^{\varepsilon,D}(t)
+-\varepsilon^2\,\Delta\theta\sum_{k=1}^K n_{j,k}^\varepsilon(t)\,\delta_\theta^2\!\Bigl(\frac1{D_k}\Bigr)
+\right|
+\le C_{\rm cons}(\varepsilon)\,\Delta\theta,
+\qquad t\in[0,T].
+\end{equation}
+In particular, the leading term vanishes when \(D\) is constant.
+\end{lemma}
+
+\begin{proof}
+Since the exact solution is smooth in the trait variable, the discrete difference operators are consistent when evaluated at the sampled exact solution. Using the consistency and Lipschitz continuity of \(\widehat H\) and \(\widehat F\), we obtain pointwise consistency relations for the numerical Hamiltonian and numerical flux. Comparing \eqref{eq:R_exact} with the continuous identity that the trait contribution equals \(\varepsilon^2\partial_{\theta\theta}n^\varepsilon\), we obtain
+\[
+R_{j,k}^\varepsilon(t)
+=
+\varepsilon^2\delta_\theta^2 n_{j,k}^\varepsilon(t)
++\tau_{j,k}^\varepsilon(t),
+\qquad
+|\tau_{j,k}^\varepsilon(t)|\le C_{\rm cons}(\varepsilon)\Delta\theta.
+\]
+Multiplying by \(\alpha_k\) and summing over \(k\), we get
+\[
+\mathcal R_j^{\varepsilon,D}(t)
+=
+\varepsilon^2\Delta\theta\sum_{k=1}^K \alpha_k\delta_\theta^2 n_{j,k}^\varepsilon(t)
++\Delta\theta\sum_{k=1}^K \alpha_k\tau_{j,k}^\varepsilon(t).
+\]
+Periodic summation by parts yields
+\[
+\Delta\theta\sum_{k=1}^K \alpha_k\delta_\theta^2 n_{j,k}^\varepsilon
+=
+\Delta\theta\sum_{k=1}^K n_{j,k}^\varepsilon\delta_\theta^2\alpha_k,
+\]
+which gives the leading term in \eqref{eq:consistency_main}. The error term is bounded by \(C_{\rm cons}(\varepsilon)\Delta\theta\) because \(\alpha_k\le D_{\min}^{-1}\).
+\end{proof}
+
+\end{document}

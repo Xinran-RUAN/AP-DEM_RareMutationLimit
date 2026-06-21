@@ -1,0 +1,71 @@
+This is BibTeX, Version 0.99d (TeX Live 2025)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: manuscript_AP_RML.aux
+The style file: plain.bst
+Database file #1: rml_wkb_references.bib
+Repeated entry---line 193 of file rml_wkb_references.bib
+ : @article{DiekmannJabinMischlerPerthame
+ :                                       ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 215 of file rml_wkb_references.bib
+ : @article{DesvillettesJabinMischlerRaoul
+ :                                        ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 225 of file rml_wkb_references.bib
+ : @article{LorzMirrahimiPerthame
+ :                               ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 236 of file rml_wkb_references.bib
+ : @article{BouinMirrahimi
+ :                        ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 246 of file rml_wkb_references.bib
+ : @article{MirrahimiPerthame
+ :                           ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 256 of file rml_wkb_references.bib
+ : @article{PerthameSouganidis
+ :                            ,
+I'm skipping whatever remains of this entry
+You've used 19 entries,
+            2118 wiz_defined-function locations,
+            640 strings with 8017 characters,
+and the built_in function-call counts, 6571 in all, are:
+= -- 673
+> -- 277
+< -- 2
++ -- 116
+- -- 90
+* -- 508
+:= -- 1101
+add.period$ -- 58
+call.type$ -- 19
+change.case$ -- 102
+chr.to.int$ -- 0
+cite$ -- 19
+duplicate$ -- 221
+empty$ -- 516
+format.name$ -- 90
+if$ -- 1336
+int.to.chr$ -- 0
+int.to.str$ -- 19
+missing$ -- 19
+newline$ -- 98
+num.names$ -- 38
+pop$ -- 68
+preamble$ -- 1
+purify$ -- 83
+quote$ -- 0
+skip$ -- 145
+stack$ -- 0
+substring$ -- 558
+swap$ -- 28
+text.length$ -- 2
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 76
+warning$ -- 0
+while$ -- 74
+width$ -- 21
+write$ -- 213
+(There were 6 error messages)

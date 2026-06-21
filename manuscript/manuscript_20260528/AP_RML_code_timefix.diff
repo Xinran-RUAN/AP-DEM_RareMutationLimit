@@ -1,0 +1,456 @@
+diff -ru orig/AP_RML_code_restructured_liveplot/+model/default_params_1d.m AP_RML_code_restructured_liveplot/+model/default_params_1d.m
+--- orig/AP_RML_code_restructured_liveplot/+model/default_params_1d.m	2026-05-17 11:47:25.000000000 +0000
++++ AP_RML_code_restructured_liveplot/+model/default_params_1d.m	2026-05-26 12:58:19.981949963 +0000
+@@ -17,7 +17,7 @@
+ %-------------------------
+ par.Nx = 80;                  % x 方向子区间数；实际节点数为 Nx+1。日常运行不建议一开始用 200
+ par.Ntheta = 64;              % 周期 trait 网格点数
+-par.dt = 1e-3;                % 时间步长
++par.dt = 1e-3;                % 时间步长；若启用自适应时间步，它作为最大时间步
+ par.T = 20;                   % 终止时间；正式长时间实验可在 run 脚本中覆盖
+ par.maxSteps = Inf;           % 额外的最大步数限制；Inf 表示只受 T 控制
+ par.tol = 1e-8;               % 稳态残差阈值；正式精度测试可改回 1e-9 或 1e-10
+@@ -36,9 +36,20 @@
+ %-------------------------
+ par.phaseHamiltonian = 'godunov';    % 'godunov', 'lf', 或 'weno5'
+ par.lfAlpha = 10;                    % Lax--Friedrichs Hamiltonian 的粘性系数
+-par.amplitudeVariant = 'split';      % 'split' 或 'density-compatible'
++par.amplitudeVariant = 'density-compatible-if'; % 'split', 'density-compatible-if', 或 'density-compatible-semidiscrete'
++par.reactionDiscretization = 'patankar'; % 'patankar' 或 'implicit'；用于 density-compatible-if 与 direct solver
+ par.transportImplicit = true;        % split WKB 中 theta 输运项是否隐式
+ par.rhoReconstruction = 'direct-log'; % 'direct-log', 'laplace', 或 'laplace-hybrid'
++par.residualMode = 'gauge-invariant'; % 'gauge-invariant' 使用重构密度 residual；'legacy' 使用旧的 W residual
++par.expClip = 700;                   % 指数比值的溢出保护阈值
++
++%-------------------------
++% 可选的自适应时间步控制
++%-------------------------
++par.adaptiveTimeStep = false;        % true: 使用 dt <= eta*eps/max(1,max r_+,max|H|)
++par.adaptiveSafety = 0.5;            % eta，建议 0.1--0.5
++par.dtMax = [];                      % 自适应时间步上界；为空时使用当前 par.dt
++par.dtMin = 0;                       % 若为正，给自适应时间步一个下界
+ 
+ %-------------------------
+ % 停止、快照和进度输出控制
+diff -ru orig/AP_RML_code_restructured_liveplot/+src/compute_diagnostics_1d.m AP_RML_code_restructured_liveplot/+src/compute_diagnostics_1d.m
+--- orig/AP_RML_code_restructured_liveplot/+src/compute_diagnostics_1d.m	2026-05-17 11:33:48.000000000 +0000
++++ AP_RML_code_restructured_liveplot/+src/compute_diagnostics_1d.m	2026-05-26 12:59:06.019928189 +0000
+@@ -23,5 +23,12 @@
+ diag.W_max = max(W(:));
+ diag.mass_total = op.dtheta * sum(P);
+ diag.gammaR = src.compute_remainder_gamma_1d(W, u, D, eps, op, par, variant);
++if isfield(par, 'dt') && ~isempty(par.dt)
++    ts = src.time_step_stability_info_1d(W, u, Kx, rho, H, eps, par.dt, op, par, variant);
++    diag.lambdaR = ts.lambdaR;
++    diag.lambdaH = ts.lambdaH;
++    diag.rplusMax = ts.rplusMax;
++    diag.HabsMax = ts.HabsMax;
++end
+ diag.P = P;
+ end
+diff -ru orig/AP_RML_code_restructured_liveplot/+src/compute_remainder_gamma_1d.m AP_RML_code_restructured_liveplot/+src/compute_remainder_gamma_1d.m
+--- orig/AP_RML_code_restructured_liveplot/+src/compute_remainder_gamma_1d.m	2026-05-17 11:33:48.000000000 +0000
++++ AP_RML_code_restructured_liveplot/+src/compute_remainder_gamma_1d.m	2026-05-26 12:56:42.210154723 +0000
+@@ -8,7 +8,7 @@
+ nx = op.nx;
+ E = exp(u/eps);
+ switch lower(variant)
+-    case {'density-compatible','dc'}
++    case {'density-compatible','dc','density-compatible-if','dc-if','density-if','integrating-factor','density-compatible-semidiscrete','dc-semidiscrete','density-compatible-old','dc-old'}
+         Rvec = eps^2 * (op.Ltheta_big * n(:));
+         R = reshape(Rvec, nx, Ktheta);
+     otherwise
+Only in AP_RML_code_restructured_liveplot/+src: compute_wkb_residual_1d.m
+diff -ru orig/AP_RML_code_restructured_liveplot/+src/density_compatible_theta_matrix.m AP_RML_code_restructured_liveplot/+src/density_compatible_theta_matrix.m
+--- orig/AP_RML_code_restructured_liveplot/+src/density_compatible_theta_matrix.m	2026-05-17 11:33:48.000000000 +0000
++++ AP_RML_code_restructured_liveplot/+src/density_compatible_theta_matrix.m	2026-05-26 12:57:05.525921252 +0000
+@@ -10,8 +10,8 @@
+ for k = 1:K
+     kp = mod(k, K) + 1;
+     km = mod(k-2, K) + 1;
+-    rPlus = exp((u(kp) - u(k))/eps);
+-    rMinus = exp((u(km) - u(k))/eps);
++    rPlus = src.safe_exp((u(kp) - u(k))/eps);
++    rMinus = src.safe_exp((u(km) - u(k))/eps);
+     coeffs = [rMinus, -2, rPlus] / dth^2;
+     js = [km, k, kp];
+     for q = 1:3
+diff -ru orig/AP_RML_code_restructured_liveplot/+src/run_direct_1d.m AP_RML_code_restructured_liveplot/+src/run_direct_1d.m
+--- orig/AP_RML_code_restructured_liveplot/+src/run_direct_1d.m	2026-05-17 11:47:57.000000000 +0000
++++ AP_RML_code_restructured_liveplot/+src/run_direct_1d.m	2026-05-26 12:56:58.108254527 +0000
+@@ -32,7 +32,7 @@
+ %-------------------------
+ while t < par.T && step < par.maxSteps
+     nOld = n;
+-    n = src.update_direct_density_fd_1d(n, D, Kx, par.eps, par.dt, op);
++    n = src.update_direct_density_fd_1d(n, D, Kx, par.eps, par.dt, op, par);
+     t = t + par.dt;
+     step = step + 1;
+     residual = max(abs(n(:)-nOld(:))) / (par.dt*(1 + max(abs(n(:)))));
+diff -ru orig/AP_RML_code_restructured_liveplot/+src/run_wkb_1d.m AP_RML_code_restructured_liveplot/+src/run_wkb_1d.m
+--- orig/AP_RML_code_restructured_liveplot/+src/run_wkb_1d.m	2026-05-17 11:47:41.000000000 +0000
++++ AP_RML_code_restructured_liveplot/+src/run_wkb_1d.m	2026-05-26 12:58:45.198882997 +0000
+@@ -30,11 +30,15 @@
+ lastPlotState = struct();
+ 
+ % 统一振幅方程版本名，便于诊断和保存。
++% density-compatible-if 是新的时间方向 density-compatible / integrating-factor 版本；
++% density-compatible-semidiscrete 保留旧的半离散兼容全离散实现，便于比较。
+ switch lower(par.amplitudeVariant)
+     case {'split','split-wkb'}
+         variant = 'split';
+-    case {'density-compatible','dc'}
+-        variant = 'density-compatible';
++    case {'density-compatible','dc','density-compatible-if','dc-if','density-if','integrating-factor'}
++        variant = 'density-compatible-if';
++    case {'density-compatible-semidiscrete','dc-semidiscrete','density-compatible-old','dc-old'}
++        variant = 'density-compatible-semidiscrete';
+     otherwise
+         error('Unknown amplitudeVariant "%s".', par.amplitudeVariant);
+ end
+@@ -51,36 +55,44 @@
+     [rho, ~] = src.reconstruct_rho_1d(W, u, par.eps, op, par.rhoReconstruction);
+     H = src.solve_H_fd_1d(D, Kx, rho, op);
+ 
++    % 可选自适应时间步。par.dt 作为最大时间步；若关闭自适应则 dtStep=par.dt。
++    [dtStep, dtInfo] = src.select_wkb_time_step_1d(par, t, W, u, D, Kx, rho, H, op, variant);
++    if dtStep <= 0
++        break;
++    end
++
+     uOld = u;
+     WOld = W;
+ 
+     % 相位方程：半隐式处理 epsilon*u_{theta theta}。
+-    uStep = src.step_phase_1d(u, H, par.eps, par.dt, op, par.phaseHamiltonian, par.lfAlpha);
++    uStep = src.step_phase_1d(u, H, par.eps, dtStep, op, par.phaseHamiltonian, par.lfAlpha);
+ 
+-    % 振幅方程：split 版本和 density-compatible 版本二选一。
++    % 振幅方程：split、旧的半离散 density-compatible 和新的时间兼容版本三选一。
+     switch variant
+         case 'split'
+-            WStep = src.update_w_split_fd_1d(W, uStep, D, Kx, rho, H, par.eps, par.dt, op, par);
+-        case 'density-compatible'
+-            WStep = src.update_w_density_compatible_fd_1d(W, uStep, D, Kx, rho, H, par.eps, par.dt, op, par);
++            WStep = src.update_w_split_fd_1d(W, uStep, D, Kx, rho, H, par.eps, dtStep, op, par);
++        case 'density-compatible-semidiscrete'
++            WStep = src.update_w_density_compatible_fd_1d(W, uStep, D, Kx, rho, H, par.eps, dtStep, op, par);
++        case 'density-compatible-if'
++            WStep = src.update_w_density_if_fd_1d(W, uOld, uStep, D, Kx, rho, par.eps, dtStep, op, par);
+     end
+ 
+     % gauge 归一化：保持 n = W exp(u/eps) 不变，同时令 max(u)=0。
+     [W, u] = src.normalize_gauge(WStep, uStep, par.eps, 'max');
+-    t = t + par.dt;
++    t = t + dtStep;
+     step = step + 1;
+ 
+-    % 稳态残差，同时检查 u 和 W。
+-    residual = max(max(abs(u(:)-uOld(:))) / par.dt, ...
+-                   max(abs(W(:)-WOld(:))) / (par.dt*(1 + max(abs(W(:))))));
++    % 稳态残差。默认使用 gauge-invariant residual：比较 u 的等价类和重构密度 n，
++    % 避免 max-gauge 对 W 的指数缩放人为放大 residual。
++    [residual, resInfo] = src.compute_wkb_residual_1d(W, u, WOld, uOld, par.eps, dtStep, op, local_get_string(par, 'residualMode', 'gauge-invariant'));
+ 
+     % 诊断历史不在每一步都算，因为 gammaR 和 H 都比较贵。
+     if step == 1 || mod(step, historyEverySteps) == 0 || residual <= par.tol
+         [rhoNow, nNow] = src.reconstruct_rho_1d(W, u, par.eps, op, par.rhoReconstruction);
+         HNow = src.solve_H_fd_1d(D, Kx, rhoNow, op);
+         dg = src.compute_diagnostics_1d(W, u, D, Kx, rhoNow, HNow, par.eps, op, par, variant);
+-        history = utils.append_history(history, t, residual, dg);
+-        lastInfo = local_progress_info(dg);
++        history = utils.append_history(history, t, residual, dg, resInfo, dtInfo);
++        lastInfo = local_progress_info(dg, resInfo, dtInfo);
+         lastPlotState = local_make_plot_state(W, u, nNow, rhoNow, HNow, Kx, op, par, t, step, residual, dg);
+     end
+ 
+@@ -122,7 +134,7 @@
+                 'op',op,'par',par,'t',t,'step',step,'residual',residual, ...
+                 'history',history,'diagnostics',diagInfo,'tag',tag,'variant',variant);
+ 
+-utils.progress_finish(prog, step, t, residual, local_progress_info(diagInfo));
++utils.progress_finish(prog, step, t, residual, local_progress_info(diagInfo, struct(), struct()));
+ outfile = fullfile(par.outdir, [tag '_final.mat']);
+ save(outfile, '-struct', 'result');
+ if par.verbose
+@@ -182,17 +194,35 @@
+ state.saveFrame = false;
+ end
+ 
+-function info = local_progress_info(dg)
++function info = local_progress_info(dg, resInfo, dtInfo)
+ % 从完整诊断量中提取一行进度输出需要的标量。
++if nargin < 2 || isempty(resInfo), resInfo = struct(); end
++if nargin < 3 || isempty(dtInfo), dtInfo = struct(); end
+ info = struct();
+-if isempty(dg)
+-    return;
++if ~isempty(dg)
++    info.theta_wkb = dg.theta_wkb;
++    info.theta_direct = dg.theta_direct;
++    info.err_wkb_to_m = dg.err_wkb_to_m;
++    info.sigma_theta = dg.sigma_theta;
++    info.gammaR = dg.gammaR;
++    info.rho_max = dg.rho_max;
++    info.Hmin = dg.Hmin;
++end
++if isstruct(resInfo)
++    if isfield(resInfo,'res_n'), info.res_n = resInfo.res_n; end
++    if isfield(resInfo,'res_u'), info.res_u = resInfo.res_u; end
++    if isfield(resInfo,'res_W_legacy'), info.res_W_legacy = resInfo.res_W_legacy; end
++end
++if isstruct(dtInfo)
++    if isfield(dtInfo,'dt'), info.dt = dtInfo.dt; end
++    if isfield(dtInfo,'lambdaR'), info.lambdaR = dtInfo.lambdaR; end
++    if isfield(dtInfo,'lambdaH'), info.lambdaH = dtInfo.lambdaH; end
++end
++end
++
++function val = local_get_string(s, name, defaultValue)
++val = defaultValue;
++if isstruct(s) && isfield(s, name) && ~isempty(s.(name))
++    val = char(s.(name));
+ end
+-info.theta_wkb = dg.theta_wkb;
+-info.theta_direct = dg.theta_direct;
+-info.err_wkb_to_m = dg.err_wkb_to_m;
+-info.sigma_theta = dg.sigma_theta;
+-info.gammaR = dg.gammaR;
+-info.rho_max = dg.rho_max;
+-info.Hmin = dg.Hmin;
+ end
+Only in AP_RML_code_restructured_liveplot/+src: safe_exp.m
+Only in AP_RML_code_restructured_liveplot/+src: select_wkb_time_step_1d.m
+Only in AP_RML_code_restructured_liveplot/+src: time_step_stability_info_1d.m
+diff -ru orig/AP_RML_code_restructured_liveplot/+src/update_direct_density_fd_1d.m AP_RML_code_restructured_liveplot/+src/update_direct_density_fd_1d.m
+--- orig/AP_RML_code_restructured_liveplot/+src/update_direct_density_fd_1d.m	2026-05-17 11:33:48.000000000 +0000
++++ AP_RML_code_restructured_liveplot/+src/update_direct_density_fd_1d.m	2026-05-26 12:56:55.847183024 +0000
+@@ -1,18 +1,42 @@
+-function nNew = update_direct_density_fd_1d(n, D, Kx, eps, dt, op)
+-%UPDATE_DIRECT_DENSITY_FD_1D 原始密度方程 n 的半隐式一步更新。
+-%   用于和 WKB 方法做对比。rho 使用当前 n^n 显式计算，扩散和反应
+-%   对 n^{n+1} 隐式，从而每一步只需求解一个线性系统。
++function nNew = update_direct_density_fd_1d(n, D, Kx, eps, dt, op, par)
++%UPDATE_DIRECT_DENSITY_FD_1D One step for the original density equation.
++%   The default reaction treatment is controlled by par.reactionDiscretization:
++%     'patankar' : positivity-preserving production-destruction reaction;
++%     'implicit' : old linear implicit reaction n^{n+1}(K-rho^n).
++%   If par is not supplied, the old implicit discretization is used.
+ Ktheta = op.Ntheta;
+ nx = op.nx;
+ N = nx*Ktheta;
+ 
++if nargin < 7 || isempty(par)
++    par = struct('reactionDiscretization','implicit');
++end
++if isfield(par, 'reactionDiscretization') && ~isempty(par.reactionDiscretization)
++    reactionMode = char(par.reactionDiscretization);
++else
++    reactionMode = 'implicit';
++end
++
+ rho = op.dtheta * sum(n, 2);
+ DblockLx = kron(spdiags(D(:),0,Ktheta,Ktheta), op.Lx);
+ Lth = op.Ltheta_big;
+-r = src.reaction_vector_1d(Kx, rho, zeros(1,Ktheta), zeros(1,Ktheta), op);
+ 
+-A = eps*speye(N) - dt*DblockLx - dt*eps^2*Lth - dt*spdiags(r,0,N,N);
+-b = eps*n(:);
++rBase = Kx(:) - rho(:);
++rBaseVec = repmat(rBase, Ktheta, 1);
++
++switch lower(reactionMode)
++    case {'patankar','production-destruction','pd','positive','positivity'}
++        rPlusVec = max(rBaseVec, 0);
++        rMinusVec = max(-rBaseVec, 0);
++        A = eps*speye(N) - dt*DblockLx - dt*eps^2*Lth + dt*spdiags(rMinusVec,0,N,N);
++        b = eps*n(:) + dt*(rPlusVec .* n(:));
++    case {'implicit','linear-implicit','fully-implicit'}
++        A = eps*speye(N) - dt*DblockLx - dt*eps^2*Lth - dt*spdiags(rBaseVec,0,N,N);
++        b = eps*n(:);
++    otherwise
++        error('Unknown reactionDiscretization "%s".', reactionMode);
++end
++
+ nNew = reshape(A \ b, nx, Ktheta);
+ nNew = real(nNew);
+ end
+diff -ru orig/AP_RML_code_restructured_liveplot/+src/update_w_density_compatible_fd_1d.m AP_RML_code_restructured_liveplot/+src/update_w_density_compatible_fd_1d.m
+--- orig/AP_RML_code_restructured_liveplot/+src/update_w_density_compatible_fd_1d.m	2026-05-17 11:33:48.000000000 +0000
++++ AP_RML_code_restructured_liveplot/+src/update_w_density_compatible_fd_1d.m	2026-05-26 12:57:31.634100370 +0000
+@@ -1,6 +1,6 @@
+ function Wnew = update_w_density_compatible_fd_1d(W, u, D, Kx, rho, H, eps, dt, op, par)
+-%UPDATE_W_DENSITY_COMPATIBLE_FD_1D density-compatible WKB 振幅更新。
+-%   该版本直接离散 (E^{-1} delta_theta^2(W E))，其中 E=exp(u/eps)。
++%UPDATE_W_DENSITY_COMPATIBLE_FD_1D 旧的半离散 density-compatible 全离散振幅更新。
++%   注意：新版代码默认使用 update_w_density_if_fd_1d。该版本直接离散 (E^{-1} delta_theta^2(W E))，其中 E=exp(u/eps)。
+ %   因而重构密度 n=W*E 在离散层面严格满足 conservative density balance，
+ %   更适合验证文章中 weighted remainder 的理论条件。
+ Ktheta = op.Ntheta;
+Only in AP_RML_code_restructured_liveplot/+src: update_w_density_if_fd_1d.m
+diff -ru orig/AP_RML_code_restructured_liveplot/+utils/append_history.m AP_RML_code_restructured_liveplot/+utils/append_history.m
+--- orig/AP_RML_code_restructured_liveplot/+utils/append_history.m	2026-05-17 11:33:48.000000000 +0000
++++ AP_RML_code_restructured_liveplot/+utils/append_history.m	2026-05-26 12:56:39.670788463 +0000
+@@ -1,8 +1,24 @@
+-function history = append_history(history, t, residual, diag)
++function history = append_history(history, t, residual, diag, resInfo, dtInfo)
+ %APPEND_HISTORY Append scalar diagnostics to a history struct.
++%   resInfo and dtInfo are optional.  They store the new gauge-invariant
++%   residual components and the adaptive time-step diagnostics.
++if nargin < 5 || isempty(resInfo)
++    resInfo = struct();
++end
++if nargin < 6 || isempty(dtInfo)
++    dtInfo = struct();
++end
+ if isempty(history)
+     history.t = [];
++    history.dt = [];
+     history.residual = [];
++    history.residual_u = [];
++    history.residual_n = [];
++    history.residual_W_legacy = [];
++    history.lambdaR = [];
++    history.lambdaH = [];
++    history.rplusMax = [];
++    history.HabsMax = [];
+     history.theta_wkb = [];
+     history.theta_direct = [];
+     history.err_wkb_to_m = [];
+@@ -16,6 +32,14 @@
+ end
+ history.t(end+1,1) = t;
+ history.residual(end+1,1) = residual;
++history.dt(end+1,1) = get_field(dtInfo, 'dt', NaN);
++history.residual_u(end+1,1) = get_field(resInfo, 'res_u', NaN);
++history.residual_n(end+1,1) = get_field(resInfo, 'res_n', NaN);
++history.residual_W_legacy(end+1,1) = get_field(resInfo, 'res_W_legacy', NaN);
++history.lambdaR(end+1,1) = get_field(dtInfo, 'lambdaR', NaN);
++history.lambdaH(end+1,1) = get_field(dtInfo, 'lambdaH', NaN);
++history.rplusMax(end+1,1) = get_field(dtInfo, 'rplusMax', NaN);
++history.HabsMax(end+1,1) = get_field(dtInfo, 'HabsMax', NaN);
+ history.theta_wkb(end+1,1) = diag.theta_wkb;
+ history.theta_direct(end+1,1) = diag.theta_direct;
+ history.err_wkb_to_m(end+1,1) = diag.err_wkb_to_m;
+@@ -27,3 +51,10 @@
+ history.rho_max(end+1,1) = diag.rho_max;
+ history.W_min(end+1,1) = diag.W_min;
+ end
++
++function val = get_field(s, name, defaultValue)
++val = defaultValue;
++if isstruct(s) && isfield(s, name) && ~isempty(s.(name)) && isnumeric(s.(name)) && isscalar(s.(name))
++    val = double(s.(name));
++end
++end
+diff -ru orig/AP_RML_code_restructured_liveplot/+utils/build_tag.m AP_RML_code_restructured_liveplot/+utils/build_tag.m
+--- orig/AP_RML_code_restructured_liveplot/+utils/build_tag.m	2026-05-17 11:33:48.000000000 +0000
++++ AP_RML_code_restructured_liveplot/+utils/build_tag.m	2026-05-26 12:55:34.845425379 +0000
+@@ -1,5 +1,31 @@
+ function tag = build_tag(par)
+ %BUILD_TAG Build a compact filename tag.
+-tag = sprintf('%s_eps%.3g_Nx%d_K%d_dt%.3g_%s_%s', par.profile, par.eps, par.Nx, par.Ntheta, par.dt, par.amplitudeVariant, par.rhoReconstruction);
++amp = get_string(par, 'amplitudeVariant', 'wkb');
++rho = get_string(par, 'rhoReconstruction', 'rho');
++react = get_string(par, 'reactionDiscretization', '');
++resmode = get_string(par, 'residualMode', '');
++adapt = '';
++if isfield(par, 'adaptiveTimeStep') && ~isempty(par.adaptiveTimeStep) && logical(par.adaptiveTimeStep)
++    adapt = '_adapt';
++end
++if isempty(react)
++    reactPart = '';
++else
++    reactPart = ['_' react];
++end
++if isempty(resmode)
++    resPart = '';
++else
++    resPart = ['_' resmode];
++end
++tag = sprintf('%s_eps%.3g_Nx%d_K%d_dt%.3g_%s%s_%s%s%s', ...
++    par.profile, par.eps, par.Nx, par.Ntheta, par.dt, amp, reactPart, rho, resPart, adapt);
+ tag = regexprep(tag, '[^A-Za-z0-9_\.-]', '_');
+ end
++
++function val = get_string(s, name, defaultValue)
++val = defaultValue;
++if isstruct(s) && isfield(s, name) && ~isempty(s.(name))
++    val = char(s.(name));
++end
++end
+diff -ru orig/AP_RML_code_restructured_liveplot/+utils/progress_update.m AP_RML_code_restructured_liveplot/+utils/progress_update.m
+--- orig/AP_RML_code_restructured_liveplot/+utils/progress_update.m	2026-05-17 11:33:48.000000000 +0000
++++ AP_RML_code_restructured_liveplot/+utils/progress_update.m	2026-05-26 12:56:44.589261221 +0000
+@@ -70,6 +70,12 @@
+ msg = append_num(msg, info, 'gammaR', 'gammaR');
+ msg = append_num(msg, info, 'rho_max', 'rhoMax');
+ msg = append_num(msg, info, 'Hmin', 'Hmin');
++msg = append_num(msg, info, 'dt', 'dt');
++msg = append_num(msg, info, 'res_n', 'resN');
++msg = append_num(msg, info, 'res_u', 'resU');
++msg = append_num(msg, info, 'res_W_legacy', 'resWold');
++msg = append_num(msg, info, 'lambdaR', 'lambdaR');
++msg = append_num(msg, info, 'lambdaH', 'lambdaH');
+ if isfield(info, 'note') && ~isempty(info.note)
+     msg = [msg, '  ', char(info.note)]; %#ok<AGROW>
+ end
+diff -ru orig/AP_RML_code_restructured_liveplot/README.md AP_RML_code_restructured_liveplot/README.md
+--- orig/AP_RML_code_restructured_liveplot/README.md	2026-05-17 11:33:48.000000000 +0000
++++ AP_RML_code_restructured_liveplot/README.md	2026-05-26 12:57:21.100476066 +0000
+@@ -44,3 +44,21 @@
+ ```
+ 
+ All output directories are resolved relative to the project root through `utils.output_dir` / `utils.resolve_path`, so scripts can be launched from the project root, from `run/`, or from another current folder. The 2D legacy path is added only when calling `startup_AP_RML(true)` or running `run_test6_2d_legacy`.
++
++## 2026 time-step/residual update
++
++This version adds the time-discretization fixes described in `time_step_issue_note.pdf`:
++
++- `par.amplitudeVariant = 'density-compatible-if'` uses a time-direction density-compatible / integrating-factor update with
++  `q_k = exp((u_k^n-u_k^{n+1})/eps)`.  This keeps the fully discrete density variable
++  `n = W.*exp(u/eps)` consistent with the density-level time difference.
++- `par.reactionDiscretization = 'patankar'` uses a production-destruction reaction treatment for the density-compatible WKB
++  update and the direct density solver.  Use `'implicit'` to recover the old linear implicit reaction.
++- `par.residualMode = 'gauge-invariant'` makes the WKB stopping residual use the reconstructed density `n` and the phase modulo
++  additive constants.  The old W-based residual is still stored as `history.residual_W_legacy` and can be used by setting
++  `par.residualMode = 'legacy'`.
++- `par.adaptiveTimeStep = true` enables the optional safeguard
++  `dt <= par.adaptiveSafety*eps/max(1,max r_+,max(abs(H)))`, with `par.dt` used as the maximum step.
++
++The old split update remains available with `par.amplitudeVariant = 'split'`, and the previous fully discrete density-compatible
++implementation is available as `par.amplitudeVariant = 'density-compatible-semidiscrete'` for comparison.
+Only in AP_RML_code_restructured_liveplot/doc: time_step_fix_notes_zh.md
+diff -ru orig/AP_RML_code_restructured_liveplot/run/run_main_1d.m AP_RML_code_restructured_liveplot/run/run_main_1d.m
+--- orig/AP_RML_code_restructured_liveplot/run/run_main_1d.m	2026-05-17 11:48:21.000000000 +0000
++++ AP_RML_code_restructured_liveplot/run/run_main_1d.m	2026-05-26 12:57:20.762259720 +0000
+@@ -65,9 +65,17 @@
+ 
+ % WKB 格式选项。
+ par.phaseHamiltonian = 'godunov';            % 'godunov', 'lf', 或 'weno5'
+-par.amplitudeVariant = 'split';              % 'split' 或 'density-compatible'
++par.amplitudeVariant = 'density-compatible-if'; % 新版默认：时间方向 density-compatible / integrating-factor
++par.reactionDiscretization = 'patankar';   % 新版默认：Patankar 型反应项，增强保正性
++par.residualMode = 'gauge-invariant';      % 新版默认：基于重构密度的 gauge-invariant residual
+ par.rhoReconstruction = 'direct-log';
+ 
++% 若希望在给定 dt 偏大时自动缩小时间步，可设为 true。
++% 自适应准则约为 dt <= eta*eps/max(1,max r_+,max|H|)。
++par.adaptiveTimeStep = false;
++par.adaptiveSafety = 0.5;
++par.dtMax = par.dt;
++
+ % 输出和进度控制。
+ par.outdir = utils.output_dir(['main_single_case_' runMode]);
+ par.verbose = true;
+@@ -128,6 +136,10 @@
+ summary.Ntheta = par.Ntheta;
+ summary.T = par.T;
+ summary.dt = par.dt;
++summary.amplitudeVariant = par.amplitudeVariant;
++summary.reactionDiscretization = par.reactionDiscretization;
++summary.residualMode = par.residualMode;
++summary.adaptiveTimeStep = par.adaptiveTimeStep;
+ summary.theta_m = par.theta_m;
+ summary.theta_wkb = wkb.diagnostics.theta_wkb;
+ summary.err_wkb_to_m = wkb.diagnostics.err_wkb_to_m;

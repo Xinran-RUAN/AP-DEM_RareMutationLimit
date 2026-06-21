@@ -1,0 +1,1679 @@
+\documentclass[11pt, dina4, amsfont12]{article}
+\topmargin=-1.0cm
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{showlabe}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{color}
+\input psfig.sty
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+
+% ******************************* Author Macros *******************************
+
+\newcommand{\pl}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\bu}{{\bf u} }
+\newcommand{\p}{\partial}
+\newcommand{\og}{\omega}
+\newcommand{\Og}{\Omega}
+\newcommand{\fl}[2]{\frac{#1}{#2}}
+\newcommand{\dt}{\delta}
+\newcommand{\nn}{\nonumber}
+\newcommand{\ap}{\alpha}
+\newcommand{\bt}{\beta}
+\newcommand{\tht}{\theta}
+\newcommand{\kp}{\kappa}
+\newcommand{\Dt}{\Delta}
+\renewcommand{\theequation}{\arabic{section}.\arabic{equation}}
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\ba}{\begin{array}}
+\newcommand{\ea}{\end{array}}
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+\newcommand{\beas}{\begin{eqnarray*}}
+\newcommand{\eeas}{\end{eqnarray*}}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{remark}{Remark}[section]
+\newtheorem{assumption}{Assumption}[section]
+\newcommand{\bx}{{\bf x} }
+\newcommand{\gm}{\gamma}
+\newcommand{\vep}{\varepsilon}
+
+% *****************************************************************************
+
+\title{A WKB-based numerical method for capturing trait concentration in a dispersal evolution model}
+
+\author{
+Weijie Huang\thanks{School of Mathematics and Statistics, Beijing Jiaotong University, Beijing 100044, People's Republic of China {\tt (wjhuang@bjtu.edu.cn)}} \ and
+Xinran Ruan\thanks{School of Mathematical Sciences, Capital Normal University, Beijing, China, 100048, People's Republic of China {\tt (xinran.ruan@cnu.edu.cn)}.}
+}
+
+\begin{document}
+\date{}
+\maketitle
+
+\begin{abstract}
+The evolution of a dispersal trait is a classical question in evolutionary ecology. A typical phenomenon is that, in the rare mutation regime, the trait distribution concentrates toward a Dirac mass, which makes the accurate numerical capture of the fittest trait difficult. In this paper, we consider a WKB reformulation of a dispersal evolution model and propose a semi-discrete numerical method for resolving the concentration in the trait direction without using prohibitively fine trait grids. We present the detailed semi-discrete scheme, establish positivity of the amplitude variable and local discrete bounds for the phase function, and prove a consistency result for the weighted $\theta$-remainder by evaluating the discrete scheme at the exact solution. These results clarify the structure of the method and provide the analytical foundation for the asymptotic-preserving design. Numerical experiments are organized to compare the proposed WKB formulation with direct discretizations and to illustrate its advantage in locating the fittest trait in the small-mutation regime.
+\end{abstract}
+
+{\bf Key words. } dispersal evolution, trait concentration, WKB ansatz, asymptotic-preserving method, Hamilton--Jacobi equation, principal eigenvalue.
+
+
+%===================================================================================================
+%	Introduction
+%===================================================================================================
+\section{Introduction}
+
+Trait concentration in the small-mutation regime is a major source of difficulty in the numerical approximation of space--trait structured population models. When the mutation parameter is small, the solution typically develops a sharp peak in the trait variable, while the dominant trait is selected through a delicate interaction between spatial heterogeneity, dispersal, and competition. In this regime, a direct discretization of the original density often requires a prohibitively fine mesh in the trait direction in order to resolve the narrow peak and identify the fittest trait accurately. As a consequence, the main numerical issue is not merely to approximate the full density, but to capture the location and structure of the emerging concentration efficiently and robustly.
+
+In this work, we consider a representative dispersal evolution model of the form
+\begin{equation}\label{eq:n_intro}
+    \varepsilon \partial_t n_\varepsilon
+    -D(\theta)\Delta_\mathbf{x} n_\varepsilon
+    -\varepsilon^2\Delta_\theta n_\varepsilon
+    =
+    n_\varepsilon\bigl(K(\mathbf{x})-\rho_\varepsilon(\mathbf{x})\bigr),
+    \qquad \mathbf{x}\in\Omega,
+\end{equation}
+where $t$ denotes time, $\mathbf{x}$ the spatial variable, and $\theta$ a phenotypic variable. The unknown $n_\varepsilon(t,\mathbf{x},\theta)$ is the structured population density, and
+\[
+\rho_\varepsilon(t,\mathbf{x})
+=
+\int_{\mathbb T} n_\varepsilon(t,\mathbf{x},\theta)\,d\theta
+\]
+is the total population density. The function $K(\mathbf{x})$ represents the local carrying capacity, while the trait-dependent diffusivity $D(\theta)$ models the dispersal rate associated with phenotype $\theta$. 
+To be consistent with \cite{}, we assume that
+\[
+    0<D_{\min}\le D(\theta)\le D_{\max}<\infty,
+    \qquad
+    0\le K(\theta)\le K_{\max}, 
+\]
+{\color{red}to indicate that ...}
+Throughout this work, we impose homogeneous Neumann boundary conditions on $\partial\Omega$ and periodic boundary conditions in the $\theta$-direction. Although our numerical development is carried out for \eqref{eq:n_intro}, the main difficulty addressed here is more general and arises in a broader class of small-mutation trait-selection problems whose solutions become highly concentrated in the phenotypic direction.
+
+Model \eqref{eq:n_intro} and related equations have been extensively studied from the analytical viewpoint, including well-posedness, long-time behavior, and the connection with adaptive dynamics \cite{MirrahimiPerthame,PerthameSouganidis,AlmeidaPerthameRuan}. A characteristic feature is that the competition between spatial heterogeneity and trait-dependent dispersal may select an optimal phenotype in the long-time regime. In many situations, the steady state exhibits concentration in the trait variable. The small parameter $\varepsilon>0$ plays the role of a rare mutation scale, and in the limit $\varepsilon\to0$ the steady state typically converges, in a weak sense, to a Dirac mass supported at the fittest trait. This singular limit is well understood at the PDE level through WKB or Hopf--Cole transforms and constrained Hamilton--Jacobi equations coupled with principal eigenvalue problems \cite{PerthameSouganidis,BarlesPerthame,MirrahimiPerthame}.
+
+From the numerical point of view, however, this asymptotic regime remains challenging. As $\varepsilon$ decreases, the trait profile of $n_\varepsilon$ becomes increasingly narrow, so standard discretizations of the original variable require a rapidly growing number of grid points in the phenotypic direction. Moreover, approximating the full density with reasonable accuracy does not automatically guarantee an accurate identification of the dominant trait. This is particularly restrictive in the small-$\varepsilon$ regime, where the quantity of real interest is often the location of the concentration and its effective profile rather than a pointwise resolution of the entire density on an extremely fine mesh.
+
+Motivated by the asymptotic structure of the rare-mutation limit, we adopt the WKB representation
+\[
+n_\varepsilon(\mathbf{x},\theta,t)
+=
+W_\varepsilon(\mathbf{x},\theta,t)\,
+\exp\!\left(\frac{u_\varepsilon(\theta,t)}{\varepsilon}\right),
+\]
+where the phase variable $u_\varepsilon$ describes the rapidly varying exponential profile in the trait direction, while $W_\varepsilon$ is a comparatively smoother amplitude. In the long-time and rare-mutation regime, the effective behavior of the phase variable is related to a constrained Hamilton--Jacobi equation involving a principal eigenvalue problem in the spatial variable \cite{PerthameSouganidis,AlmeidaPerthameRuan}. This observation suggests that the WKB reformulation is not only asymptotically natural but also computationally advantageous. In particular, it provides a mechanism for extracting the dominant trait from the phase variable without directly resolving the narrow peak of the original density on a prohibitively fine trait grid.
+
+The present paper is organized around this computational viewpoint. Our main goal is to develop and study a WKB-based numerical strategy that is able to capture trait concentration more efficiently than direct discretizations of the original model. To this end, we first derive a semi-discrete formulation for the phase and amplitude variables. We then specify a concrete numerical method based on a monotone discretization of the Hamilton--Jacobi part and a positivity-preserving discretization of the amplitude equation. At the analytical level, we establish several foundational properties for the semi-discrete system, including positivity of the amplitude, local discrete bounds for the phase function, and a weighted first-difference estimate for the amplitude. We also prove a consistency result for the weighted $\theta$-remainder by evaluating the discrete scheme at the exact solution. This result clarifies the asymptotic mechanism underlying the method and supports its use in the small-mutation regime. On the numerical side, our experiments are designed to compare the original discretization and the WKB formulation directly, with particular emphasis on the accurate capture of the fittest trait when $\varepsilon$ is small.
+
+The paper is organized as follows. In Section~2 we recall the WKB ansatz and the formal steady-state rare mutation limit that motivate the numerical formulation. In Section~3 we present the semi-discrete scheme and derive the estimates that are currently justified at the discrete level. Section~4 is devoted to numerical experiments, where we compare the WKB formulation with direct discretizations and examine its performance in the concentration regime. The appendices collect typical choices of monotone numerical Hamiltonians and monotone numerical fluxes, together with a fully discrete realization of the method.
+
+
+%===================================================================================================
+%   Preliminary results
+%===================================================================================================
+\section{Preliminary}
+
+\subsection{WKB ansatz and reformulated system}
+
+To capture the concentration phenomenon in the trait variable, we introduce the classical WKB ansatz
+\begin{equation}\label{eq:WKB}
+   n_\varepsilon(x,\theta,t)
+   = W_\varepsilon(x,\theta,t)\,
+   \exp\!\left(\frac{u_\varepsilon(\theta,t)}{\varepsilon}\right).
+\end{equation}
+This decomposition separates the exponentially varying part in the trait direction from a comparatively smoother amplitude. It is therefore natural for both the continuous asymptotic analysis and the numerical design in the small-mutation regime.
+
+Substituting \eqref{eq:WKB} into \eqref{eq:n_intro} and assigning the leading trait-direction exponential contributions to the phase function, we obtain the reformulated system
+\begin{equation}\label{eq:WKB_reformulation0}
+\left\{
+\begin{aligned}
+& \partial_t u_\varepsilon
+- |\partial_\theta u_\varepsilon|^2
+- \varepsilon \, \partial_{\theta\theta} u_\varepsilon
+= - \mathcal H(\theta,t), \\
+& \varepsilon \partial_t W_\varepsilon
+- D(\theta)\Delta_x W_\varepsilon
+- \varepsilon^2 \partial_{\theta\theta} W_\varepsilon
+- 2\varepsilon \, \partial_\theta W_\varepsilon \, \partial_\theta u_\varepsilon
+= W_\varepsilon\bigl(K(x)-\rho_\varepsilon(x,t)+\mathcal H(\theta,t)\bigr),
+\end{aligned}
+\right.
+\end{equation}
+where \(\mathcal H(\theta,t)\) denotes an effective Hamiltonian. 
+Using the identity
+\[
+\partial_\theta(W_\varepsilon\partial_\theta u_\varepsilon)
+=
+\partial_\theta W_\varepsilon\,\partial_\theta u_\varepsilon
++
+W_\varepsilon\partial_{\theta\theta}u_\varepsilon,
+\]
+we rewrite the transport coupling in conservative form. If
+\begin{equation}\label{def:F}
+F_\varepsilon=-W_\varepsilon\partial_\theta u_\varepsilon,
+\end{equation}
+then
+\[
+-2\varepsilon\partial_\theta W_\varepsilon\,\partial_\theta u_\varepsilon
+=
+2\varepsilon\partial_\theta F_\varepsilon
++
+2\varepsilon W_\varepsilon\partial_{\theta\theta}u_\varepsilon .
+\]
+Consequently, the system can be written as
+\begin{equation}\label{eq:WKB_reformulation}
+\left\{
+\begin{aligned}
+& \partial_t u_\varepsilon
+- |\partial_\theta u_\varepsilon|^2
+- \varepsilon \, \partial_{\theta\theta} u_\varepsilon
+= - \mathcal H(\theta,t), \\
+& \varepsilon \partial_t W_\varepsilon
+- D(\theta)\Delta_x W_\varepsilon
+- \varepsilon^2 \partial_{\theta\theta} W_\varepsilon
++2\varepsilon\partial_\theta F_\varepsilon
+=
+W_\varepsilon
+\bigl(
+K(x)-\rho_\varepsilon(x,t)
++\mathcal H(\theta,t)
+-2\varepsilon\partial_{\theta\theta}u_\varepsilon
+\bigr).
+\end{aligned}
+\right.
+\end{equation}
+In the continuous theory, \(\mathcal H\) is related to a principal eigenvalue problem in the spatial variable. This structure is the basic reason for introducing the variables \((u_\varepsilon,W_\varepsilon)\) in the first place.
+
+\subsection{Continuous asymptotic structure of the steady state}\label{subsec:continuous_asymptotic_structure}
+
+We next recall the steady-state asymptotic structure that motivates the numerical method. Let \((\bar n_\varepsilon,\bar \rho_\varepsilon)\) be a positive steady state of \eqref{eq:n_intro}. Then
+\begin{equation}\label{eq:ss_n}
+-D(\theta)\Delta_x \bar n_\varepsilon
+-\varepsilon^2\partial_{\theta\theta} \bar n_\varepsilon
+=
+\bar n_\varepsilon\bigl(K(x)-\bar\rho_\varepsilon(x)\bigr),
+\qquad
+\bar\rho_\varepsilon(x)=\int_{\mathbb T} \bar n_\varepsilon(x,\theta)\,d\theta.
+\end{equation}
+As shown in \cite{PerthameSouganidis}, under standard assumptions on \(K\), \(D\), and the domain, the steady-state family admits several properties that are fundamental for the rare-mutation limit.
+
+\begin{proposition}[Continuous asymptotic structure of the steady state]\label{prop:continuous_structure}
+Assume that \(K\) is positive and nonconstant, that \(D\) is positive, periodic, and has a unique minimizer \(\theta_m\), and that the steady problem \eqref{eq:ss_n} admits a positive solution. Then the following properties hold at the continuous level.
+\begin{enumerate}
+\item There exists a constant \(C>0\), independent of \(\varepsilon\), such that
+\begin{equation}\label{eq:rho_continuous_bound}
+0\le \bar\rho_\varepsilon(x)\le C
+\qquad \text{for all } x\in\Omega.
+\end{equation}
+Moreover, up to subsequences, \(\bar\rho_\varepsilon\) converges uniformly to a limit density \(\rho\).
+
+\item If we write
+\begin{equation}\label{eq:u_log_transform}
+\bar n_\varepsilon(x,\theta)=\exp\!\left(\frac{\bar u_\varepsilon(x,\theta)}{\varepsilon}\right),
+\end{equation}
+then \(\bar u_\varepsilon\) is uniformly Lipschitz continuous in \(\theta\), and along subsequences
+\begin{equation}\label{eq:u_limit_uniform}
+\bar u_\varepsilon \to u
+\qquad \text{uniformly in } (x,\theta),
+\end{equation}
+where the limit \(u\) is independent of \(x\), periodic in \(\theta\), and satisfies
+\begin{equation}\label{eq:HJ_limit}
+\begin{cases}
+|\partial_\theta u(\theta)|^2 = \mathcal H\bigl(\theta,\rho(\cdot)\bigr),\\[1mm]
+\displaystyle \max_{\theta\in\mathbb T} u(\theta)=0.
+\end{cases}
+\end{equation}
+
+\item The effective Hamiltonian \(\mathcal H(\theta,\rho)\) is defined through the principal eigenvalue problem
+\begin{equation}\label{eq:eigen_N}
+\begin{cases}
+-D(\theta)\Delta_x \mathcal N(x,\theta)
+= \mathcal N(x,\theta)\bigl(K(x)-\rho(x)\bigr)
++ \mathcal N(x,\theta)\,\mathcal H\bigl(\theta,\rho(\cdot)\bigr), & x\in\Omega,\\
+\partial_\nu \mathcal N = 0, & x\in\partial\Omega,
+\end{cases}
+\end{equation}
+with a positive eigenfunction \(\mathcal N\). Moreover, \(\mathcal H\) has the same monotonicity in \(\theta\) as \(D\), and hence
+\begin{equation}\label{eq:H_min_zero}
+\min_{\theta\in\mathbb T} \mathcal H\bigl(\theta,\rho(\cdot)\bigr)
+=
+\mathcal H\bigl(\theta_m,\rho(\cdot)\bigr)
+=0.
+\end{equation}
+
+\item The steady state concentrates on the fittest trait in the limit \(\varepsilon\to0\). More precisely,
+\begin{equation}\label{eq:continuous_dirac_limit}
+\bar n_\varepsilon \rightharpoonup N_m(x)\,\delta(\theta-\theta_m),
+\qquad
+\bar\rho_\varepsilon \to N_m(x),
+\end{equation}
+where \(N_m\) solves the reduced Fisher-type problem
+\begin{equation}\label{eq:Nm_problem}
+\begin{cases}
+-D(\theta_m)\Delta_x N_m = N_m\bigl(K(x)-N_m\bigr), & x\in\Omega,\\
+\partial_\nu N_m = 0, & x\in\partial\Omega.
+\end{cases}
+\end{equation}
+\end{enumerate}
+\end{proposition}
+
+%\begin{remark}[Interpretation for the numerical method]\label{rem:AP_target_cont}
+Proposition~\ref{prop:continuous_structure} provides the continuous target of the numerical scheme. The boundedness of \(\bar\rho_\varepsilon\) keeps the effective Hamiltonian in a bounded regime. The constrained Hamilton--Jacobi equation identifies the dominant trait through the maximizer of \(u\). The concentration result \eqref{eq:continuous_dirac_limit} indicates that an asymptotic-preserving discretization should recover the reduced pair \((N_m,\theta_m)\) without resolving the original density on an extremely fine trait grid. This is the sense in which the WKB reformulation is used in the sequel.
+%\end{remark}
+
+
+%===================================================================================================
+%   Detailed scheme
+%===================================================================================================
+
+\section{WKB reformulated numerical scheme}
+
+In this section, we develop and analyze a semi-discrete numerical scheme for
+the WKB reformulation \eqref{eq:WKB_reformulation}. The scheme is formulated
+in terms of the phase variable \(u_\varepsilon\) and the amplitude variable
+\(W_\varepsilon\), with the total density \(n_\varepsilon\) reconstructed from
+the WKB representation.
+
+\subsection{Semi-discrete numerical discretization}
+
+We work at the semi-discrete level in order to separate the discretization in
+\((x,\theta)\) from the additional issue of time stepping. For clarity, we
+present the scheme in one spatial dimension with uniform grids in the
+\(x\)- and \(\theta\)-directions. This choice is not essential for the WKB
+decomposition, but it keeps the notation transparent.
+
+Let \(\{x_j\}_{j=1}^J\) be a uniform grid on \(\Omega=(a,b)\) and let
+\(\{\theta_k\}_{k=1}^K\) be a uniform periodic grid on \(\mathbb T=(0,1)\),
+with mesh size \(\Delta\theta\). We denote
+\[
+W_{j,k}^\varepsilon(t)\approx W_\varepsilon(t,x_j,\theta_k),
+\qquad
+u_k^\varepsilon(t)\approx u_\varepsilon(t,\theta_k).
+\]
+For notational convenience, we write
+\[
+D_k=D(\theta_k),
+\qquad
+K_j=K(x_j).
+\]
+By \eqref{}, we have 
+\[
+    0<D_{\min}\le D_k\le D_{\max}<\infty,
+    \qquad
+    0\le K_j\le K_{\max}.
+\]
+
+
+For a grid function \(V=\{V_{j,k}\}\), we use the standard second-order
+difference operators
+\[
+\delta_x^2 V_{j,k}
+=
+\frac{V_{j+1,k}-2V_{j,k}+V_{j-1,k}}{(\Delta x)^2},
+\qquad
+\delta_\theta^2 V_{j,k}
+=
+\frac{V_{j,k+1}-2V_{j,k}+V_{j,k-1}}{(\Delta\theta)^2}.
+\]
+The homogeneous Neumann boundary condition in \(x\) is imposed by the ghost
+values
+\[
+V_{0,k}=V_{1,k},
+\qquad
+V_{J+1,k}=V_{J,k},
+\]
+while all indices in the \(\theta\)-direction are understood periodically.
+For the phase variable, we also use
+\[
+D_\theta^-u_k
+=
+\frac{u_k-u_{k-1}}{\Delta\theta},
+\qquad
+D_\theta^+u_k
+=
+\frac{u_{k+1}-u_k}{\Delta\theta}.
+\]
+
+The semi-discrete WKB system involves two numerical ingredients that are not
+contained in the standard second-order difference operators introduced above.
+The first one is the numerical Hamiltonian for the phase equation. The
+Hamilton--Jacobi term \(-|\partial_\theta u_\varepsilon|^2\) is approximated by
+\[
+\widehat H(D_\theta^-u_k^\varepsilon,D_\theta^+u_k^\varepsilon).
+\]
+We assume that \(\widehat H\) is locally Lipschitz and consistent with the
+continuous Hamiltonian, namely
+\[
+\widehat H(p,p)=-p^2 .
+\]
+We also assume that it is monotone in the sense that it is nondecreasing with
+respect to its first argument and nonincreasing with respect to its second
+argument. When \(\widehat H\) is differentiable, this condition reads
+\[
+\partial_a\widehat H(a,b)\ge0,
+\qquad
+\partial_b\widehat H(a,b)\le0 .
+\]
+Typical examples are the Godunov and Lax--Friedrichs numerical Hamiltonians,
+as recalled in Appendix~\ref{append:HJ}.
+
+The second ingredient is the conservative discretization of the transport
+coupling in the amplitude equation. Recall that the continuous flux is
+\[
+F_\varepsilon=-W_\varepsilon\partial_\theta u_\varepsilon .
+\]
+We denote by
+\[
+\mathcal D_\theta\widehat{\mathcal F}(W^\varepsilon,u^\varepsilon)_{j,k}
+\]
+a conservative discretization of \(\partial_\theta F_\varepsilon\) at
+\((x_j,\theta_k)\). Here \(\widehat{\mathcal F}\) approximates the flux
+\(-W_\varepsilon\partial_\theta u_\varepsilon\). We assume that
+\(\mathcal D_\theta\widehat{\mathcal F}\) is consistent with
+\[
+\partial_\theta F_\varepsilon
+=
+\partial_\theta(-W_\varepsilon\partial_\theta u_\varepsilon)
+\]
+when evaluated on smooth functions, and that it is conservative in the
+periodic trait variable. For the positivity argument below, we further assume
+the quasi-positivity property
+\begin{equation}\label{ass:H_flux}
+W_{j,k}=0,
+\qquad
+W_{j,\ell}\ge0\ \text{for all }\ell
+\quad\Longrightarrow\quad
+-\mathcal D_\theta\widehat{\mathcal F}(W,u)_{j,k}\ge0 .
+\end{equation}
+This property is satisfied by standard monotone finite volume fluxes, such as
+the upwind and Lax--Friedrichs fluxes listed in Appendix~\ref{append:flux}.
+
+With these two ingredients specified, we now define the discrete density and
+the semi-discrete WKB system. For notational convenience, set
+\begin{equation}\label{def:E}
+E_k^\varepsilon(t)
+=
+\exp\!\left(\frac{u_k^\varepsilon(t)}{\varepsilon}\right).
+\end{equation}
+The reconstructed nodal density is defined by
+\begin{equation}\label{def:n_reconstructed}
+n_{j,k}^\varepsilon(t)
+=
+W_{j,k}^\varepsilon(t)E_k^\varepsilon(t).
+\end{equation}
+
+
+As we shall see later, the evolution of $u_\varepsilon$ and $W_\varepsilon$ 
+couples with the density function. 
+Here we consider a general density computed by a
+trait-direction quadrature operator
+\[
+\mathcal Q_\theta^\varepsilon[W_j^\varepsilon,u^\varepsilon],
+\]
+which approximates
+\[
+\int_{\mathbb T}
+n_\varepsilon(t,x_j,\theta)
+\,d\theta 
+=
+\int_{\mathbb T}
+W_\varepsilon(t,x_j,\theta)
+\exp\!\left(\frac{u_\varepsilon(t,\theta)}{\varepsilon}\right)
+\,d\theta .
+\]
+We define
+\begin{equation}\label{eq:E_rho}
+\rho_{j,Q}^\varepsilon(t)
+=
+\mathcal Q_\theta^\varepsilon
+\bigl[W_{j,\cdot}^\varepsilon(t),u^\varepsilon(t)\bigr],
+\qquad
+j=1,\dots,J .
+\end{equation}
+A direct composite quadrature gives
+\begin{equation} \label{def:m}
+\rho_{j,Q}^\varepsilon(t)
+=
+m_j^\varepsilon(t)
+:=
+\Delta\theta
+\sum_{k=1}^K
+W_{j,k}^\varepsilon(t)E_k^\varepsilon(t),
+\end{equation}
+whereas in the small-\(\varepsilon\) regime one may instead use a
+Laplace-type reconstruction presented in
+Appendix~\ref{append:full_discretization} near the maximizer of
+\(u^\varepsilon\).
+
+Given
+\[
+\boldsymbol\rho_Q(t)
+=
+\bigl(\rho_{1,Q}^\varepsilon(t),\dots,\rho_{J,Q}^\varepsilon(t)\bigr),
+\]
+the discrete effective Hamiltonian
+\(\mathcal H_k(\boldsymbol\rho_Q(t))\) is determined by the discrete
+principal eigenvalue problem
+\begin{equation}\label{eq:eigen_discrete}
+-D_k\delta_x^2\mathcal N_j^{(k)}
+=
+\mathcal N_j^{(k)}
+\bigl(K_j-\rho_{j,Q}^\varepsilon(t)\bigr)
++
+\mathcal N_j^{(k)}
+\mathcal H_k\bigl(\boldsymbol\rho_Q(t)\bigr),
+\qquad
+j=1,\dots,J .
+\end{equation}
+Here \(\mathcal N^{(k)}\) is the corresponding positive eigenvector, equipped
+with the same discrete Neumann boundary condition in \(x\). Its normalization
+does not affect \(\mathcal H_k\). For definiteness, one may impose
+\[
+\Delta x\sum_{j=1}^J \mathcal N_j^{(k)}=1 .
+\]
+
+With the above notation, the semi-discrete WKB scheme reads
+\begin{equation}\label{eq:semi_discrete_WKB_system}
+\left\{
+\begin{aligned}
+&\frac{\mathrm d}{\mathrm dt}u_k^\varepsilon
++
+\widehat H
+\left(
+D_\theta^-u_k^\varepsilon,
+D_\theta^+u_k^\varepsilon
+\right)
+-
+\varepsilon\delta_\theta^2u_k^\varepsilon
+=
+-\mathcal H_k\bigl(\boldsymbol\rho_Q(t)\bigr),
+\qquad
+k=1,\dots,K,
+\\[1mm]
+&\varepsilon
+\frac{\mathrm d}{\mathrm dt}W_{j,k}^\varepsilon
+-
+D_k\delta_x^2W_{j,k}^\varepsilon
+-
+\varepsilon^2\delta_\theta^2W_{j,k}^\varepsilon
++
+2\varepsilon
+\mathcal D_\theta
+\widehat{\mathcal F}(W^\varepsilon,u^\varepsilon)_{j,k}
+\\
+&\qquad =
+W_{j,k}^\varepsilon
+\bigl(
+K_j-\rho_{j,Q}^\varepsilon(t)
++\mathcal H_k(\boldsymbol\rho_Q(t))
+-2\varepsilon\delta_\theta^2u_k^\varepsilon
+\bigr),
+\qquad
+j=1,\dots,J,\quad k=1,\dots,K .
+\end{aligned}
+\right.
+\end{equation}
+
+We next show the equation satisfied by the reconstructed density
+\(n_{j,k}^\varepsilon\). Since \(E_k^\varepsilon\) is independent of the
+spatial index \(j\),
+\[
+\delta_x^2 n_{j,k}^\varepsilon
+=
+E_k^\varepsilon\delta_x^2W_{j,k}^\varepsilon .
+\]
+Moreover,
+\begin{equation}\label{def:dt_n}
+\varepsilon\frac{\mathrm d}{\mathrm dt}n_{j,k}^\varepsilon
+=
+E_k^\varepsilon
+\left(
+\varepsilon\frac{\mathrm d}{\mathrm dt}W_{j,k}^\varepsilon
++
+W_{j,k}^\varepsilon
+\frac{\mathrm d}{\mathrm dt}u_k^\varepsilon
+\right).
+\end{equation}
+Multiplying the first equation in \eqref{eq:semi_discrete_WKB_system} by $E_k^\varepsilon W_{j,k}^\varepsilon$ and multiplying the second equation in  \eqref{eq:semi_discrete_WKB_system} by $\varepsilon E_k^\varepsilon$, 
+noticing \eqref{def:dt_n},
+we can derive that \(n_{j,k}^\varepsilon\) satisfies
+\begin{equation}\label{eq:semi_discrete_n}
+\varepsilon\frac{\mathrm d}{\mathrm dt} n_{j,k}^\varepsilon
+-
+D_k\delta_x^2 n_{j,k}^\varepsilon
+=
+\bigl(K_j-\rho_{j,Q}^\varepsilon\bigr)n_{j,k}^\varepsilon
++
+R_{j,k}^\varepsilon ,
+\end{equation}
+where the remainder has the form 
+\begin{align}
+R_{j,k}^\varepsilon
+&=
+\varepsilon^2
+E_k^\varepsilon
+\delta_\theta^2 W_{j,k}^\varepsilon
+-
+\varepsilon
+W_{j,k}^\varepsilon
+E_k^\varepsilon
+\delta_\theta^2 u_k^\varepsilon
+-
+W_{j,k}^\varepsilon
+E_k^\varepsilon
+\widehat H
+\left(
+D_\theta^-u_k^\varepsilon,
+D_\theta^+u_k^\varepsilon
+\right)
+-
+2\varepsilon
+E_k^\varepsilon
+\mathcal D_\theta
+\widehat{\mathcal F}(W^\varepsilon,u^\varepsilon)_{j,k}.
+\label{eq:R_exact}
+\end{align}
+Thus the reconstructed density satisfies a semi-discrete analogue of the
+original density equation, with \(R_{j,k}^\varepsilon\) collecting the
+trait-direction discretization effects. When the numerical Hamiltonian and
+the conservative flux are evaluated on smooth exact functions, this remainder
+is consistent with the trait diffusion contribution
+\(\varepsilon^2\partial_{\theta\theta}n^\varepsilon\).
+
+
+
+%===================================================================================================
+%   Subsection: basic structural property
+%===================================================================================================
+
+\subsection{Basic structural property}
+
+The semi-discrete scheme \eqref{eq:semi_discrete_n} can be shown to be positive-preserving 
+as long as the initial data is nonnegative. 
+The detailed result is summarized as the following lemma. 
+
+\begin{lemma}[Positivity of the amplitude]
+\label{lem:positivity_W}
+Assume that \(W_{j,k}^\varepsilon(0)\ge0\) for all \(j,k\). Then the
+semi-discrete amplitude equation in \eqref{eq:semi_discrete_WKB_system}
+preserves nonnegativity, namely
+\[
+    W_{j,k}^\varepsilon(t)\ge0
+    \qquad
+    \forall\,j,k,\ t\ge0,
+\]
+as long as the solution exists. Consequently,
+\[
+    n_{j,k}^\varepsilon(t)\ge0
+    \qquad
+    \forall\,j,k,\ t\ge0 .
+\]
+\end{lemma}
+
+\begin{proof}
+It is enough to verify the quasi-positivity of the right-hand side of the
+finite-dimensional ODE system for \(W^\varepsilon\). From the amplitude
+equation in \eqref{eq:semi_discrete_WKB_system}, we can write
+\[
+\varepsilon \frac{\mathrm d}{\mathrm dt}W_{j,k}^\varepsilon
+=
+D_k\delta_x^2W_{j,k}^\varepsilon
++
+\varepsilon^2\delta_\theta^2W_{j,k}^\varepsilon
+-
+2\varepsilon
+\mathcal D_\theta\widehat{\mathcal F}(W^\varepsilon,u^\varepsilon)_{j,k}
++
+W_{j,k}^\varepsilon B_{j,k}(t),
+\]
+where
+\[
+B_{j,k}(t)
+=
+K_j-\rho_{j,Q}^\varepsilon(t)
++\mathcal H_k(\boldsymbol\rho_Q(t))
+-2\varepsilon\delta_\theta^2u_k^\varepsilon(t).
+\]
+Let \(W^\varepsilon\ge0\) and suppose that
+\(W_{j,k}^\varepsilon=0\) for some \((j,k)\). Then, for an interior spatial
+point,
+\[
+\delta_x^2W_{j,k}^\varepsilon
+=
+\frac{W_{j+1,k}^\varepsilon+W_{j-1,k}^\varepsilon}{(\Delta x)^2}
+\ge0, 
+\quad 
+\delta_\theta^2W_{j,k}^\varepsilon
+=
+\frac{W_{j,k+1}^\varepsilon+W_{j,k-1}^\varepsilon}{(\Delta\theta)^2}
+\ge0 .
+\]
+The same conclusion holds at the boundary because of the Neumann ghost
+values in $x$-direction and the periodicity in \(\theta\)-direction. 
+The quasi-positivity assumption on the conservative flux operator implies that 
+\[
+    -
+    \mathcal D_\theta\widehat{\mathcal F}(W^\varepsilon,u^\varepsilon)_{j,k}
+    \ge0 .
+\]
+Combining all the inequalities, noticing the fact that 
+\(
+    W_{j,k}^\varepsilon B_{j,k}(t)=0 
+\)
+since we assumed $W_{j,k}^\varepsilon=0$, 
+we finally have that, at this specific $(j,k)$, the following inequality holds, 
+\[
+\left.
+\frac{\mathrm d}{\mathrm dt}W_{j,k}^\varepsilon
+\right|_{W_{j,k}^\varepsilon=0}
+\ge0 .
+\]
+Thus the vector field points inward on the boundary of the nonnegative cone.
+The standard invariance criterion for finite-dimensional ODE systems implies
+the claim.
+\end{proof}
+
+%\begin{remark}[On the time-dependent stability]
+%For each fixed \(\varepsilon>0\), the semi-discrete system is a
+%finite-dimensional ODE system under the locally Lipschitz assumptions on the
+%discrete operators. Uniform-in-\(\varepsilon\) continuation estimates for the
+%time-dependent problem require a separate bootstrap argument involving the
+%density, phase, amplitude, and trait-direction remainder. This issue is not
+%pursued in the present work.
+%\end{remark}
+
+
+%===================================================================================================
+%   Subsection: discrete stationary AP structure
+%===================================================================================================
+
+\subsection{Discrete stationary AP structure}
+\label{subsec:stationary_discrete_AP}
+
+We now turn to stationary semi-discrete states. The purpose of this subsection
+is to reproduce, at the discrete level, the main stationary structure of the
+continuous rare-mutation analysis. We first give a conditional density
+estimate, then use it to control the discrete effective Hamiltonian and the
+stationary phase equation. This leads to a fixed-grid formal AP
+interpretation for trait selection. 
+
+By Lemma~\ref{lem:positivity_W}, if the amplitude is initialized
+nonnegatively, then
+$
+    W_{j,k}^\varepsilon\ge0.
+$
+and therefore the reconstructed nodal density satisfies
+$
+    n_{j,k}^\varepsilon
+    =
+    W_{j,k}^\varepsilon E_k^\varepsilon
+    \ge0.
+$
+In the stationary estimates below, we consider stationary semi-discrete
+states with this nonnegative reconstructed density.
+
+\paragraph{Conditional density estimate.}
+We begin by showing that the density is uniformly bounded with respect to $\varepsilon$. 
+For later convenience of analysis, we define
+\[
+    \eta_j^\varepsilon
+    =
+    \Delta\theta
+    \sum_{k=1}^K
+    \frac{n_{j,k}^\varepsilon}{D_k}.
+\]
+Multiplying \eqref{eq:semi_discrete_n} by \(1/D_k\) and summing over the
+trait variable $k$ gives the stationary weighted balance equation 
+\begin{equation}\label{eq:weighted_summed_density_stationary}
+    -\delta_x^2m_j^\varepsilon
+    =
+    \eta_j^\varepsilon
+    \bigl(K_j-\rho_{j,Q}^\varepsilon\bigr)
+    +
+    \mathcal R_j^{\varepsilon,D}, 
+\end{equation}
+where $m_j^\varepsilon$ and $\rho_{j,Q}^\varepsilon$ are defined in \eqref{def:m} and \eqref{eq:E_rho}, respectively, 
+and
+\[
+	 \mathcal R_j^{\varepsilon,D} = \Delta\theta
+    \sum_{k=1}^K
+    \frac{R_{j,k}^\varepsilon}{D_k}.
+\]
+The weighted remainder \(\mathcal R_j^{\varepsilon,D}\) is the semi-discrete
+counterpart of 
+\[
+	 \varepsilon^2
+    \int_{\mathbb T}
+    \frac1{D(\theta)}
+     \partial_{\theta\theta} n^\varepsilon
+    \,d\theta ,
+\]
+in the continuous density
+estimate. 
+A direct computation via integration by parts  gives
+\[
+    \varepsilon^2
+    \int_{\mathbb T}
+    \frac1{D(\theta)}
+     \partial_{\theta\theta} n^\varepsilon
+    \,d\theta  
+    =
+    \varepsilon^2
+    \int_{\mathbb T}
+    n^\varepsilon
+    \partial_{\theta\theta}
+    \left(\frac1{D(\theta)}\right)
+    \,d\theta \le C\varepsilon^2\rho^\varepsilon, 
+\]
+where \(C\) is some constant independent of $\varepsilon$. 
+In the semi-discrete WKB scheme, the discrete remainder
+\(\mathcal R_j^{\varepsilon,D}\) contains the defect caused by applying
+discrete operators to the reconstructed density
+\(n_{j,k}^\varepsilon=W_{j,k}^\varepsilon E_k^\varepsilon\). Since the
+discrete WKB decomposition does not provide an exact chain rule, a direct
+uniform bound on this defect is not automatic. We therefore formulate the
+following one-sided stability assumption:
+\begin{equation}\label{eq:remainder_CR_bound}
+    \mathcal R_j^{\varepsilon,D}
+    \le
+    C_R m_j^\varepsilon+r_h,
+    \qquad j=1,\ldots,J,
+\end{equation}
+where \(C_R>0\) and \(r_h\ge0\) are independent of \(\varepsilon\). This
+assumption should be understood as a conditional stability requirement on the
+trait discretization. Under this condition, the positive contribution of the
+discrete defect is controlled by the local density up to a grid-dependent
+error, which is sufficient for the uniform density estimate below.
+
+
+\begin{proposition}[Conditional density bound for stationary semi-discrete states]
+\label{prop:uniform_bound_stationary_mass}
+Let \((u^\varepsilon,W^\varepsilon)\) be a stationary semi-discrete state
+satisfying the stationary weighted balance \eqref{eq:weighted_summed_density_stationary}.
+Assume that the reconstruction satisfies the coercive lower bound
+\begin{equation}\label{eq:quadrature_coercivity_lower}
+    \rho_{j,Q}^\varepsilon
+    \ge
+    c_Qm_j^\varepsilon-e_Q,
+    \qquad j=1,\ldots,J,
+\end{equation}
+where \(c_Q>0\) and \(e_Q\ge0\) are independent of \(\varepsilon\). Assume
+also that the weighted trait-direction remainder satisfies one-sided stability condition \eqref{eq:remainder_CR_bound}.
+
+Then there exists a constant \(C_m>0\), independent of \(\varepsilon\), such
+that
+\[
+    0\le m_j^\varepsilon\le C_m,
+    \qquad j=1,\ldots,J .
+\]
+\end{proposition}
+
+\begin{proof}
+By Lemma~\ref{lem:positivity_W}, we have
+\[
+    W_{j,k}^\varepsilon\ge0.
+\]
+Since \(E_k^\varepsilon>0\), it follows that
+\[
+    n_{j,k}^\varepsilon\ge0,
+    \qquad
+    m_j^\varepsilon\ge0.
+\]
+Moreover, by the definition of \(\eta_j^\varepsilon\),
+\[
+    \frac1{D_{\max}}m_j^\varepsilon
+    \le
+    \eta_j^\varepsilon
+    \le
+    \frac1{D_{\min}}m_j^\varepsilon .
+\]
+Using the stationary balance \eqref{eq:weighted_summed_density_stationary}
+and the remainder bound \eqref{eq:remainder_CR_bound}, we obtain
+\[
+    -\delta_x^2m_j^\varepsilon
+    +
+    \eta_j^\varepsilon\rho_{j,Q}^\varepsilon
+    \le
+    K_{\max}\eta_j^\varepsilon
+    +
+    C_Rm_j^\varepsilon
+    +
+    r_h .
+\]
+
+Let \(j_*\) be a point where \(m_j^\varepsilon\) attains its maximum. Set
+\[
+    M^\varepsilon=m_{j_*}^\varepsilon=\max_jm_j^\varepsilon .
+\]
+By the discrete maximum principle,
+\[
+    \delta_x^2m_{j_*}^\varepsilon\le0.
+\]
+Therefore,
+\[
+    \eta_{j_*}^\varepsilon\rho_{j_*,Q}^\varepsilon
+    \le
+    K_{\max}\eta_{j_*}^\varepsilon
+    +
+    C_RM^\varepsilon
+    +
+    r_h .
+\]
+
+If \(M^\varepsilon\le e_Q/c_Q\), then \(M^\varepsilon\) is already bounded
+independently of \(\varepsilon\). We now assume
+\[
+    M^\varepsilon>e_Q/c_Q.
+\]
+Then
+\[
+    c_QM^\varepsilon-e_Q>0.
+\]
+Using the coercive lower bound \eqref{eq:quadrature_coercivity_lower}, we get
+\[
+    \rho_{j_*,Q}^\varepsilon
+    \ge
+    c_QM^\varepsilon-e_Q.
+\]
+Together with
+\[
+    \eta_{j_*}^\varepsilon
+    \ge
+    \frac1{D_{\max}}M^\varepsilon,
+\]
+this gives
+\[
+    \eta_{j_*}^\varepsilon\rho_{j_*,Q}^\varepsilon
+    \ge
+    \frac1{D_{\max}}
+    M^\varepsilon
+    \left(
+        c_QM^\varepsilon-e_Q
+    \right).
+\]
+On the other hand,
+\[
+    K_{\max}\eta_{j_*}^\varepsilon
+    \le
+    \frac{K_{\max}}{D_{\min}}M^\varepsilon .
+\]
+Hence
+\[
+    \frac1{D_{\max}}
+    M^\varepsilon
+    \left(
+        c_QM^\varepsilon-e_Q
+    \right)
+    \le
+    \left(
+        \frac{K_{\max}}{D_{\min}}
+        +
+        C_R
+    \right)
+    M^\varepsilon
+    +
+    r_h .
+\]
+Equivalently,
+\[
+    \frac{c_Q}{D_{\max}}
+    (M^\varepsilon)^2
+    \le
+    \left(
+        \frac{K_{\max}}{D_{\min}}
+        +
+        C_R
+        +
+        \frac{e_Q}{D_{\max}}
+    \right)
+    M^\varepsilon
+    +
+    r_h .
+\]
+This quadratic inequality implies that \(M^\varepsilon\) is bounded by a
+constant independent of \(\varepsilon\). Hence
+\[
+    0\le m_j^\varepsilon\le C_m,
+    \qquad j=1,\ldots,J.
+\]
+\end{proof}
+
+\begin{remark}
+The coercive lower bound \eqref{eq:quadrature_coercivity_lower} is a stability
+condition on the density reconstruction used in the nonlocal reaction term.
+It is automatically satisfied by the direct composite quadrature with
+\(c_Q=1\) and \(e_Q=0\). For a Laplace-type reconstruction, this condition
+means that the reconstructed density does not underestimate the direct
+composite mass by more than a controlled amount. This is consistent with its
+intended use in the small-\(\varepsilon\) regime, where the direct composite
+quadrature may under-resolve the concentrated trait profile.
+
+The one-sided estimate \eqref{eq:remainder_CR_bound} plays the role of a
+semi-discrete stability condition for the trait-direction discretization. It
+does not require the weighted remainder to vanish. It only requires that the
+positive contribution of the trait-direction remainder is no stronger than a
+linear growth in the direct composite mass, up to a controlled grid-level
+defect \(r_h\). Under this condition, the logistic damping generated by the
+competition term remains effective in the discrete density estimate.
+\end{remark}
+
+\begin{remark}
+If, in addition, the reconstruction satisfies the upper stability estimate
+\begin{equation}\label{eq:quadrature_coercivity_upper}
+    \rho_{j,Q}^\varepsilon
+    \le
+    C_Q m_j^\varepsilon +e_Q,
+\end{equation}
+with $e_Q$ and \(C_Q>0\) independent of \(\varepsilon\), 
+the uniform bound for \(\rho_{j,Q}^\varepsilon\) follows immediately.
+\end{remark}
+
+
+\paragraph{Stationary phase estimate.}
+
+The density bound above controls the reconstructed density. The next result
+shows that this also controls the discrete effective Hamiltonian and gives a
+fixed-grid estimate for the stationary phase.
+
+\begin{proposition}[Stationary phase estimate on a fixed trait grid]
+\label{prop:stationary_phase_estimate}
+Assume that
+\[
+    0\le \rho_{j,Q}^\varepsilon\le \overline\rho,
+    \qquad j=1,\ldots,J,
+\]
+where \(\overline\rho\) is independent of \(\varepsilon\). Then the discrete
+effective Hamiltonian defined by \eqref{eq:eigen_discrete} satisfies
+\[
+    |\mathcal H_k(\boldsymbol\rho_Q)|
+    \le C_{\mathcal H},
+    \qquad k=1,\ldots,K,
+\]
+where \(C_{\mathcal H}\) is independent of \(\varepsilon\).
+
+Assume further that the stationary phase equation
+\begin{equation}\label{eq:stationary_phase}
+    \widehat H_G
+    \left(
+        D_\theta^-u_k^\varepsilon,
+        D_\theta^+u_k^\varepsilon
+    \right)
+    -
+    \varepsilon\delta_\theta^2u_k^\varepsilon
+    =
+    -\mathcal H_k(\boldsymbol\rho_Q)
+\end{equation}
+holds with the Godunov numerical Hamiltonian
+\[
+    \widehat H_G(p^-,p^+)
+    =
+    -\bigl((p^-)_{-}\bigr)^2
+    -
+    \bigl((p^+)_{+}\bigr)^2 .
+\]
+Then
+\[
+    \Delta\theta
+    \sum_{k=1}^K
+    |D_\theta^+u_k^\varepsilon|^2
+    \le
+    C_{\mathcal H}.
+\]
+Consequently,
+\[
+    \max_k |D_\theta^+u_k^\varepsilon|
+    \le
+    \frac{\sqrt{C_{\mathcal H}}}{\sqrt{\Delta\theta}} .
+\]
+If the phase is normalized by
+\[
+    \max_k u_k^\varepsilon=0,
+\]
+then
+\[
+    \max_k |u_k^\varepsilon|
+    \le
+    \sqrt{C_{\mathcal H}} .
+\]
+All constants are independent of \(\varepsilon\), although they may depend on
+the fixed trait mesh.
+\end{proposition}
+
+\begin{proof}
+We first prove the bound for \(\mathcal H_k\). The discrete eigenvalue
+problem \eqref{eq:eigen_discrete} is associated with the symmetric operator
+\[
+    -D_k\delta_x^2-(K_j-\rho_{j,Q}^\varepsilon).
+\]
+The principal eigenvalue admits the Rayleigh quotient
+\[
+    \mathcal H_k(\boldsymbol\rho_Q)
+    =
+    \min_{\varphi\ne0}
+    \frac{
+        D_k\Delta x\sum_j |\delta_x^+\varphi_j|^2
+        -
+        \Delta x\sum_j
+        (K_j-\rho_{j,Q}^\varepsilon)\varphi_j^2
+    }{
+        \Delta x\sum_j\varphi_j^2
+    } .
+\]
+Since \(0\le K_j\le K_{\max}\) and
+\(0\le \rho_{j,Q}^\varepsilon\le\overline\rho\), we have
+\[
+    -K_{\max}
+    \le
+    -(K_j-\rho_{j,Q}^\varepsilon)
+    \le
+    \overline\rho .
+\]
+Thus
+\[
+    \mathcal H_k(\boldsymbol\rho_Q)\ge -K_{\max}.
+\]
+Testing the Rayleigh quotient with a constant vector gives
+\[
+    \mathcal H_k(\boldsymbol\rho_Q)
+    \le
+    \frac{
+        \Delta x\sum_j
+        (\rho_{j,Q}^\varepsilon-K_j)
+    }{
+        \Delta x\sum_j1
+    }
+    \le \overline\rho .
+\]
+Therefore
+\[
+    |\mathcal H_k(\boldsymbol\rho_Q)|
+    \le
+    \max\{K_{\max},\overline\rho\}
+    =:C_{\mathcal H}.
+\]
+
+We now prove the phase estimate. Let
+\[
+    q_k^\varepsilon=D_\theta^+u_k^\varepsilon .
+\]
+Then
+\[
+    D_\theta^-u_k^\varepsilon=q_{k-1}^\varepsilon .
+\]
+By the definition of \(\widehat H_G\),
+\[
+    -\widehat H_G
+    \left(
+        D_\theta^-u_k^\varepsilon,
+        D_\theta^+u_k^\varepsilon
+    \right)
+    =
+    \bigl((q_{k-1}^\varepsilon)_{-}\bigr)^2
+    +
+    \bigl((q_k^\varepsilon)_{+}\bigr)^2 .
+\]
+Summing \eqref{eq:stationary_phase} over \(k\) and using periodicity gives
+\[
+    \Delta\theta
+    \sum_{k=1}^K
+    \widehat H_G
+    \left(
+        D_\theta^-u_k^\varepsilon,
+        D_\theta^+u_k^\varepsilon
+    \right)
+    =
+    -
+    \Delta\theta
+    \sum_{k=1}^K
+    \mathcal H_k(\boldsymbol\rho_Q),
+\]
+because
+\[
+    \Delta\theta\sum_{k=1}^K
+    \delta_\theta^2u_k^\varepsilon=0 .
+\]
+Hence
+\[
+\begin{aligned}
+    \Delta\theta
+    \sum_{k=1}^K
+    |q_k^\varepsilon|^2
+    &=
+    \Delta\theta
+    \sum_{k=1}^K
+    \left[
+        \bigl((q_k^\varepsilon)_{-}\bigr)^2
+        +
+        \bigl((q_k^\varepsilon)_{+}\bigr)^2
+    \right]
+    \\
+    &=
+    -
+    \Delta\theta
+    \sum_{k=1}^K
+    \widehat H_G
+    \left(
+        D_\theta^-u_k^\varepsilon,
+        D_\theta^+u_k^\varepsilon
+    \right)
+    \\
+    &=
+    \Delta\theta
+    \sum_{k=1}^K
+    \mathcal H_k(\boldsymbol\rho_Q)
+    \le C_{\mathcal H}.
+\end{aligned}
+\]
+This proves the \(L^2\) bound for the discrete trait slope. The pointwise
+bound follows from
+\[
+    |q_k^\varepsilon|^2
+    \le
+    \frac1{\Delta\theta}
+    \Delta\theta
+    \sum_{\ell=1}^K |q_\ell^\varepsilon|^2 .
+\]
+If \(\max_k u_k^\varepsilon=0\), then for any \(k\), connecting \(k\) to a
+maximizer along the periodic grid gives
+\[
+    |u_k^\varepsilon|
+    \le
+    \Delta\theta
+    \sum_{\ell=1}^K |D_\theta^+u_\ell^\varepsilon|
+    \le
+    \left(
+        \Delta\theta
+        \sum_{\ell=1}^K |D_\theta^+u_\ell^\varepsilon|^2
+    \right)^{1/2}.
+\]
+Thus
+\[
+    |u_k^\varepsilon|\le\sqrt{C_{\mathcal H}} .
+\]
+\end{proof}
+
+
+\paragraph{Formal AP trait-selection limit.}
+
+We next pass formally to the fixed-grid rare-mutation limit.
+
+\begin{proposition}[Formal AP trait-selection limit]
+\label{prop:formal_AP_trait_selection}
+Assume that the stationary semi-discrete states satisfy the density estimate
+above and that the phase is normalized by
+\[
+    \max_k u_k^\varepsilon=0 .
+\]
+Then, up to a subsequence on the fixed grids,
+\[
+    \boldsymbol\rho_Q^\varepsilon\to \boldsymbol\rho^0,
+    \qquad
+    u^\varepsilon\to u^0 .
+\]
+Moreover, the limiting phase satisfies the discrete constrained
+Hamilton--Jacobi system
+\[
+    \widehat H
+    \left(
+        D_\theta^-u_k^0,
+        D_\theta^+u_k^0
+    \right)
+    =
+    -\mathcal H_k(\boldsymbol\rho^0),
+    \qquad
+    \max_k u_k^0=0 .
+\]
+For the Godunov Hamiltonian \(\widehat H_G\), every maximizer \(k_*\) of
+\(u^0\) satisfies
+\[
+    \mathcal H_{k_*}(\boldsymbol\rho^0)=0.
+\]
+If \(\mathcal H_k(\boldsymbol\rho^0)\) has a unique zero at \(k_m\), then
+\(k_*=k_m\). Hence the selected trait is identified by
+\[
+    \theta_{k_m}\in \arg\max_k u_k^0 .
+\]
+\end{proposition}
+
+\begin{proof}
+The density estimate and the upper stability of the reconstruction give a
+uniform bound on \(\boldsymbol\rho_Q^\varepsilon\). Since the spatial grid is
+fixed, we can extract a subsequence such that
+\[
+    \boldsymbol\rho_Q^\varepsilon\to \boldsymbol\rho^0 .
+\]
+The stationary phase estimate gives a uniform bound on the normalized
+\(u^\varepsilon\) on the fixed trait grid. Hence, up to another subsequence,
+\[
+    u^\varepsilon\to u^0 .
+\]
+
+Passing to the limit in the stationary phase equation gives
+\[
+    \widehat H
+    \left(
+        D_\theta^-u_k^0,
+        D_\theta^+u_k^0
+    \right)
+    =
+    -\mathcal H_k(\boldsymbol\rho^0),
+\]
+because the grid is fixed and
+\[
+    \varepsilon\delta_\theta^2u_k^\varepsilon\to0 .
+\]
+The constraint \(\max_k u_k^0=0\) follows from the normalization.
+
+For the Godunov Hamiltonian, \(\widehat H_G\le0\). Therefore
+\[
+    \mathcal H_k(\boldsymbol\rho^0)
+    =
+    -
+    \widehat H_G
+    \left(
+        D_\theta^-u_k^0,
+        D_\theta^+u_k^0
+    \right)
+    \ge0 .
+\]
+If \(k_*\) is a maximizer of \(u^0\), then
+\[
+    D_\theta^-u_{k_*}^0\ge0,
+    \qquad
+    D_\theta^+u_{k_*}^0\le0.
+\]
+Thus
+\[
+    \widehat H_G
+    \left(
+        D_\theta^-u_{k_*}^0,
+        D_\theta^+u_{k_*}^0
+    \right)=0,
+\]
+and hence
+\[
+    \mathcal H_{k_*}(\boldsymbol\rho^0)=0.
+\]
+If the zero of \(\mathcal H_k(\boldsymbol\rho^0)\) is unique, then
+\(k_*=k_m\). This proves the claim.
+\end{proof}
+
+\begin{remark}[Scope of the discrete stationary AP structure]
+The preceding results give a fixed-grid, conditional AP-oriented structure
+for stationary semi-discrete states. The density estimate relies on the
+coercivity of the reconstruction and on the one-sided control of the
+weighted trait-direction remainder. The phase estimate is uniform in
+\(\varepsilon\) on a fixed trait grid, but it is not a mesh-uniform Bernstein
+estimate. A complete AP convergence theorem would require a closed stability
+analysis for the density, phase, amplitude, and trait-direction remainder.
+\end{remark}
+
+
+%===================================================================================================
+%	Numerical experiments
+%===================================================================================================
+
+\section{Numerical experiments}
+
+This section is organized around the numerical questions that are most relevant for the WKB formulation. Since the present draft focuses on the analytical and structural preparation, we record here the experimental design that should be implemented in the next revision.
+
+\subsection{Experiment group I. Direct discretization versus WKB formulation}
+
+The first group of tests should compare the original discretization of \eqref{eq:n_intro} with the WKB reformulation on the same spatial domain and for the same model parameters. The main diagnostics are
+\begin{itemize}
+\item the location of the numerically detected fittest trait,
+\item the error in the reconstructed density profile,
+\item the number of trait grid points required to achieve a prescribed accuracy,
+\item the computational cost.
+\end{itemize}
+The purpose of this group is to demonstrate that the WKB formulation resolves the dominant trait with substantially fewer grid points in the trait direction when $\varepsilon$ is small.
+
+\subsection{Experiment group II. Small-$\varepsilon$ regime}
+
+The second group of tests should fix the remaining parameters and decrease $\varepsilon$. The aim is to examine the robustness of the WKB method in the concentration regime and to track the emerging sharp peak in the trait direction. The natural outputs are the maximizer of the phase function, the width of the reconstructed trait profile, and the stability of the discrete eigenvalue computation.
+
+\subsection{Experiment group III. Nontrivial dispersal landscapes}
+
+The third group of tests should use nonconstant diffusivity $D(\theta)$ and nontrivial carrying capacity $K(x)$ in order to illustrate that the method is not limited to a symmetric toy setting. These tests are particularly relevant for assessing the influence of the weighted division by $D(\theta)$ and for observing how the trait concentration depends on the heterogeneity of the dispersal cost.
+
+\subsection{Planned quantitative outputs}
+
+For each test, the following quantitative outputs are recommended.
+\begin{itemize}
+\item the computed dominant trait location,
+\item the discrepancy between direct and WKB-based trait prediction,
+\item the total density profile in space,
+\item the CPU time and the number of grid points in the trait direction,
+\item sensitivity with respect to $\varepsilon$.
+\end{itemize}
+These are the quantities that best match the numerical focus of the paper and should ultimately support the claim that the WKB reformulation is advantageous for trait concentration problems.
+
+\bigskip
+\noindent{\large\bf Acknowledgements}
+X. Ruan acknowledges support from the National Natural Science Foundation of China (Grant number 12201436) and the R\&D Program of Beijing Municipal Education Commission from China, grant number KM202310028016.
+W. Huang acknowledges support from .
+
+\appendix
+\appendix
+
+\section{Typical choices of the monotone numerical Hamiltonian}
+\label{append:HJ}
+
+We briefly list typical choices of the monotone numerical Hamiltonian used
+for the Hamilton--Jacobi term. For the continuous Hamiltonian
+\[
+H(p)=-p^2,
+\]
+the numerical Hamiltonian \(\widehat H(a,b)\) is required to satisfy
+\[
+\widehat H(p,p)=H(p)=-p^2 .
+\]
+A simple Lax--Friedrichs type choice is
+\[
+\widehat H^{\rm LF}(a,b)
+=
+-\left(\frac{a+b}{2}\right)^2
++\frac{\alpha}{2}(a-b),
+\]
+where \(\alpha>0\) is chosen sufficiently large on the range of the
+computed slopes. A Godunov type Hamiltonian may also be used. The analysis
+in the main text only relies on the consistency and monotonicity of
+\(\widehat H\).
+
+\section{Typical realizations of the discrete conservative flux}
+\label{append:flux}
+
+We describe typical realizations of the abstract conservative operator
+\[
+\mathcal D_\theta\widehat{\mathcal F}(W,u)_{j,k}
+\]
+used in the semi-discrete amplitude equation. Recall that the continuous
+flux is
+\[
+F=-W\partial_\theta u .
+\]
+Thus \(\widehat{\mathcal F}\) is a numerical approximation of
+\(-W\partial_\theta u\). It does not include the factor \(2\varepsilon\),
+which is kept outside the flux operator in the main text.
+
+On a uniform finite volume grid in the trait variable, one may write
+\[
+\mathcal D_\theta\widehat{\mathcal F}(W,u)_{j,k}
+=
+\frac{
+\widehat F_{j,k+\frac12}
+-
+\widehat F_{j,k-\frac12}
+}{\Delta\theta}.
+\]
+Let
+\[
+q_{k+\frac12}
+=
+\frac{u_{k+1}-u_k}{\Delta\theta}
+\]
+be an approximation of \(\partial_\theta u\) at the interface
+\(\theta_{k+\frac12}\). Since \(F=-Wu_\theta\), we set
+\[
+a_{k+\frac12}=-q_{k+\frac12}.
+\]
+
+\paragraph{Upwind flux.}
+A standard upwind realization is
+\[
+\widehat F_{j,k+\frac12}^{\rm up}
+=
+a_{k+\frac12}^+ W_{j,k}
++
+a_{k+\frac12}^- W_{j,k+1},
+\]
+where
+\[
+a^+=\max(a,0),
+\qquad
+a^-=\min(a,0).
+\]
+Equivalently, in terms of \(q_{k+\frac12}\),
+\[
+\widehat F_{j,k+\frac12}^{\rm up}
+=
+q_{k+\frac12}^- W_{j,k}
+-
+q_{k+\frac12}^+ W_{j,k+1},
+\qquad
+q^+=\max(q,0),
+\qquad
+q^-=\max(-q,0).
+\]
+
+\paragraph{Lax--Friedrichs flux.}
+Another possible realization is the Lax--Friedrichs flux
+\[
+\widehat F_{j,k+\frac12}^{\rm LF}
+=
+\frac12 a_{k+\frac12}
+\left(W_{j,k}+W_{j,k+1}\right)
+-
+\frac12 \alpha_{k+\frac12}
+\left(W_{j,k+1}-W_{j,k}\right),
+\]
+where
+\[
+\alpha_{k+\frac12}\ge |a_{k+\frac12}|.
+\]
+Both fluxes are consistent with \(F=-W\partial_\theta u\). In the periodic
+trait variable, the conservative difference satisfies
+\[
+\Delta\theta
+\sum_{k=1}^K
+\mathcal D_\theta\widehat{\mathcal F}(W,u)_{j,k}
+=
+0,
+\]
+provided the interface fluxes are taken periodically.
+
+\section{A fully discrete realization} \label{append:full_discretization}
+
+In this appendix, we describe a typical fully discrete realization of the
+semi-discrete WKB scheme. Assume that \(u^n\) and \(W^n\) are known at time
+\(t_n\). The update from \(t_n\) to \(t_{n+1}\) may be performed as follows.
+
+First, define
+\[
+E_k^n=
+\exp\!\left(\frac{u_k^n}{\varepsilon}\right).
+\]
+The total density is reconstructed by the chosen quadrature operator
+\[
+\rho_j^n
+=
+\mathcal Q_\theta^\varepsilon[W_{j,\cdot}^n,u^n].
+\]
+For example, the direct composite quadrature is
+\[
+\rho_j^n
+=
+\Delta\theta
+\sum_{k=1}^K
+W_{j,k}^n E_k^n .
+\]
+When \(\varepsilon\) is small and the trait profile is sharply concentrated,
+we use a Laplace-type reconstruction near a maximizer \(\theta_*^n\) of
+\(u^n\):
+\[
+\rho_j^n
+\approx
+W^n(x_j,\theta_*^n)
+\exp\!\left(\frac{u^n(\theta_*^n)}{\varepsilon}\right)
+\sqrt{
+\frac{2\pi\varepsilon}
+{\left|\partial_{\theta\theta}u^n(\theta_*^n)\right|}
+}.
+\]
+This Laplace-type reconstruction is asymptotically accurate when
+\(u^n\) has a nondegenerate dominant maximum and is particularly useful when
+the direct uniform quadrature under-resolves the concentrated trait profile.
+
+%First, define
+%\[
+%E_k^n
+%=
+%\exp\!\left(\frac{u_k^n}{\varepsilon}\right)
+%\]
+%and reconstruct the total density by the discrete quadrature
+%\[
+%\rho_j^n
+%=
+%\Delta\theta
+%\sum_{k=1}^K
+%W_{j,k}^n E_k^n,
+%\qquad
+%j=1,\dots,J .
+%\]
+%When \(\varepsilon\) is very small, a Laplace approximation near a maximizer
+%\(\theta_*^n\) of \(u^n\) may also be used as an optional acceleration or
+%diagnostic:
+%\[
+%\rho_j^n
+%\approx
+%W^n(x_j,\theta_*^n)
+%\exp\!\left(\frac{u^n(\theta_*^n)}{\varepsilon}\right)
+%\sqrt{
+%\frac{2\pi\varepsilon}
+%{\left|\partial_{\theta\theta}u^n(\theta_*^n)\right|}
+%}.
+%\]
+%In the fully discrete scheme below, however, \(\rho_j^n\) denotes the
+%reconstructed density used to define the discrete eigenvalue problem.
+
+For each discrete trait value \(\theta_k\), compute \(H_k^n\) from
+\[
+-D_k\delta_x^2\mathcal N_j^{(k),n}
+=
+\mathcal N_j^{(k),n}(K_j-\rho_j^n)
++
+\mathcal N_j^{(k),n}H_k^n,
+\qquad
+j=1,\dots,J,
+\]
+with discrete Neumann boundary conditions. The eigenvector may be normalized by
+\[
+\Delta x\sum_{j=1}^J\mathcal N_j^{(k),n}=1 .
+\]
+
+The phase is updated by the semi-implicit scheme
+\[
+\frac{u_k^{n+1}-u_k^n}{\tau}
++
+\widehat H
+\left(
+D_\theta^-u_k^n,
+D_\theta^+u_k^n
+\right)
+-
+\varepsilon\delta_\theta^2u_k^{n+1}
+=
+-H_k^n .
+\]
+
+The amplitude is updated by
+\begin{equation*}
+\begin{aligned}
+\varepsilon
+\frac{W_{j,k}^{n+1}-W_{j,k}^n}{\tau}
+&-
+D_k\delta_x^2W_{j,k}^{n+1}
+-
+\varepsilon^2\delta_\theta^2W_{j,k}^{n+1}
++
+2\varepsilon
+\mathcal D_\theta
+\widehat{\mathcal F}(W^{n+1},u^{n+1})_{j,k}
+\\
+&=
+W_{j,k}^{n+1}
+\bigl(
+K_j-\rho_j^n
++
+H_k^n
+-
+2\varepsilon\delta_\theta^2u_k^{n+1}
+\bigr).
+\end{aligned}
+\end{equation*}
+
+\section{A fully discrete realization}
+
+In this appendix, we describe a typical fully discrete realization. Assume that $(u^n, W^n)$ are known at time $t_n$. The update from $t_n$ to $t_{n+1}$ is performed through the following steps.
+
+First, the density is reconstructed by
+\[
+\rho_\varepsilon(x,t)
+=
+\int_0^1 W_\varepsilon(x,\theta,t)e^{u_\varepsilon(\theta,t)/\varepsilon}\,d\theta.
+\]
+Since $\varepsilon\ll 1$, one may also approximate the integral by Laplace's method near a global maximizer $\theta^*(t)$ of $u_\varepsilon(\theta,t)$:
+\[
+\rho_\varepsilon(x,t)
+\approx
+W_\varepsilon (x, \theta^*, t)
+e^{u_\varepsilon(\theta^*,t)/\varepsilon}
+\sqrt{\frac{2\pi\varepsilon}{|\partial_{\theta\theta}u_\varepsilon(\theta^*, t)|}}.
+\]
+At the discrete spatial nodes $x_j$, we write
+\[
+\rho_j^n
+\approx
+W^n(x_j, \theta^*) e^{u^n(\theta^*)/\varepsilon}
+\sqrt{\frac{2\pi\varepsilon}{|\partial_{\theta\theta}u^n(\theta^*)|}}.
+\]
+
+For each discrete trait value $\theta_k$, the eigenvalue $H_k^n$ is computed from the discrete Sturm--Liouville problem
+\[
+-D(\theta_k)\delta_x^2W_{j,k}^n-W_{j,k}^n(K_j - \rho_j^n)=W_{j,k}^nH_k^n,
+\]
+with discrete Neumann boundary conditions.
+
+The phase is updated through the semi-implicit scheme
+\[
+\dfrac{u_k^{n+1} - u_k^n}{\tau}
++\widehat{H} \!\left(D_\theta^- u_k^n,\; D_\theta^+ u_k^n\right)
+- \varepsilon \delta_\theta^2 u_k^{n+1}
+= -H_k^n.
+\]
+
+Finally, the amplitude is updated by
+\begin{equation*}
+\begin{aligned}
+\varepsilon \dfrac{W_{j,k}^{n+1}-W_{j,k}^n}{\tau}
+&- D_k\delta_x^2W_{j,k}^{n+1}
+- \varepsilon^2 \delta_\theta^2 W_{j,k}^{n+1}
++ 2\varepsilon \dfrac{\widehat{F}_{k+\frac{1}{2}} - \widehat{F}_{k-\frac{1}{2}}}{\Delta\theta}
++ 2\varepsilon W_{j,k}^{n+1}\delta_\theta^2u_k^{n+1} \\
+&= W_{j,k}^{n+1}(K_j-\rho_j^n) + W_{j,k}^{n+1}H_k^n.
+\end{aligned}
+\end{equation*}
+
+\section{The discretization of the original problem}
+
+For reference, the original formulation reads
+\[
+\varepsilon \partial_t n_\varepsilon - D(\theta)\Delta_{xx}n_\varepsilon -\varepsilon^2\Delta_\theta n_\varepsilon = n_\varepsilon(K(x) - \rho_\varepsilon (x)),
+\qquad
+\rho_\varepsilon(x) = \int_0^1 n_\varepsilon(x,\theta) \, d\theta.
+\]
+
+\end{document}
+
+
+
+
+
+
+

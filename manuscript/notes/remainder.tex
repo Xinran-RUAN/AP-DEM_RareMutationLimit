@@ -1,0 +1,293 @@
+\documentclass[11pt, dina4, amsfont12]{article}
+\topmargin=-1.0cm
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{showlabe}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{color}
+\input psfig.sty
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+
+% ******************************* Author Macros *******************************
+
+\newcommand{\pl}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\bu}{{\bf u} }
+\newcommand{\p}{\partial}
+\newcommand{\og}{\omega}
+\newcommand{\Og}{\Omega}
+\newcommand{\fl}[2]{\frac{#1}{#2}}
+\newcommand{\dt}{\delta}
+\newcommand{\nn}{\nonumber}
+\newcommand{\ap}{\alpha}
+\newcommand{\bt}{\beta}
+\newcommand{\tht}{\theta}
+\newcommand{\kp}{\kappa}
+\newcommand{\Dt}{\Delta}
+\renewcommand{\theequation}{\arabic{section}.\arabic{equation}}
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\ba}{\begin{array}}
+\newcommand{\ea}{\end{array}}
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+\newcommand{\beas}{\begin{eqnarray*}}
+\newcommand{\eeas}{\end{eqnarray*}}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{remark}{Remark}[section]
+\newtheorem{assumption}{Assumption}[section]
+\newcommand{\bx}{{\bf x} }
+\newcommand{\gm}{\gamma}
+\newcommand{\vep}{\varepsilon}
+
+% *****************************************************************************
+
+\title{Notes on the proof of the remainder}
+
+\author{
+Weijie Huang\thanks{School of Mathematics and Statistics, Beijing Jiaotong University, Beijing 100044, People's Republic of China {\tt (wjhuang@bjtu.edu.cn)}} \ and
+Xinran Ruan\thanks{School of Mathematical Sciences, Capital Normal University, Beijing, China, 100048, People's Republic of China {\tt (xinran.ruan@cnu.edu.cn)}.}
+}
+
+\begin{document}
+\date{}
+\maketitle
+%%============后续 严格的数值分析================
+\begin{assumption}[Trait-direction stability estimates]
+\label{ass:trait_stability}
+On the time interval or for the stationary state under consideration, assume
+that the following estimates hold.
+
+\begin{enumerate}
+\item[(B1)] The discrete phase satisfies
+\[
+    \max_k
+    \left(
+        |D_\theta^-u_k^\varepsilon|
+        +
+        |D_\theta^+u_k^\varepsilon|
+    \right)
+    \le L_T .
+\]
+
+\item[(B2)] The amplitude satisfies the weighted first-difference estimate
+\[
+    \Delta\theta
+    \sum_{k=1}^K
+    \left(
+        E_k^\varepsilon+E_{k+1}^\varepsilon
+    \right)
+    |D_\theta^+W_{j,k}^\varepsilon|
+    \le
+    M_T m_j^\varepsilon .
+\]
+
+\item[(B3)] The numerical Hamiltonian is bounded on bounded slopes,
+\[
+    \left|
+    \widehat H
+    \left(
+        D_\theta^-u_k^\varepsilon,
+        D_\theta^+u_k^\varepsilon
+    \right)
+    \right|
+    \le
+    C_H L_T^2 .
+\]
+
+\item[(B4)] The conservative trait flux satisfies the weighted interface
+bound
+\[
+    E_k^\varepsilon
+    \left|
+    \widehat{\mathcal F}_{j,k+1/2}
+    \right|
+    \le
+    C_F L_T
+    \left(
+        n_{j,k}^\varepsilon+n_{j,k+1}^\varepsilon
+    \right),
+\]
+and the analogous estimate holds for the interface \(k-1/2\).
+\end{enumerate}
+\end{assumption}
+
+\begin{remark}
+For the Godunov Hamiltonian \(\widehat H_G\) and the upwind flux given above,
+(B3) and (B4) hold on bounded slope sets. Indeed,
+\[
+    |\widehat H_G(p^-,p^+)|
+    \le
+    |p^-|^2+|p^+|^2,
+\]
+and the upwind choice avoids uncontrolled ratios of neighboring exponential
+weights.
+\end{remark}
+
+\begin{lemma}[One-sided control of the weighted trait remainder]
+\label{lem:one_sided_remainder_bound}
+Assume that Assumption~\ref{ass:trait_stability} holds. Then
+\begin{equation}\label{eq:one_sided_remainder_bound}
+    \mathcal R_j^{\varepsilon,D}
+    \le
+    C
+    \left(
+        L_T^2
+        +
+        \frac{\varepsilon L_T}{\Delta\theta}
+        +
+        \frac{\varepsilon^2M_T}{\Delta\theta}
+    \right)
+    m_j^\varepsilon .
+\end{equation}
+In particular, for fixed \(\Delta\theta>0\) and \(0<\varepsilon\le1\), there
+exists a constant \(C_R=C_R(\Delta\theta,L_T,M_T)\), independent of
+\(\varepsilon\), such that
+\begin{equation}\label{eq:remainder_CR_bound}
+    \mathcal R_j^{\varepsilon,D}
+    \le
+    C_R m_j^\varepsilon .
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+We estimate the four terms in \(R_{j,k}^\varepsilon\). Throughout the proof,
+\(C\) denotes a constant independent of \(\varepsilon\).
+
+For the first term, using
+\[
+    \delta_\theta^2W_{j,k}^\varepsilon
+    =
+    \frac{
+        D_\theta^+W_{j,k}^\varepsilon
+        -
+        D_\theta^+W_{j,k-1}^\varepsilon
+    }{\Delta\theta},
+\]
+we obtain
+\[
+\begin{aligned}
+&
+\varepsilon^2
+\Delta\theta
+\sum_{k=1}^K
+\frac{E_k^\varepsilon}{D_k}
+\left|
+\delta_\theta^2W_{j,k}^\varepsilon
+\right|
+\\
+&\qquad
+\le
+C
+\frac{\varepsilon^2}{\Delta\theta}
+\Delta\theta
+\sum_{k=1}^K
+\left(
+    E_k^\varepsilon+E_{k+1}^\varepsilon
+\right)
+\left|
+D_\theta^+W_{j,k}^\varepsilon
+\right|
+\\
+&\qquad
+\le
+C
+\frac{\varepsilon^2M_T}{\Delta\theta}
+m_j^\varepsilon .
+\end{aligned}
+\]
+For the second term, (B1) gives
+\[
+    |\delta_\theta^2u_k^\varepsilon|
+    =
+    \left|
+    \frac{
+        D_\theta^+u_k^\varepsilon
+        -
+        D_\theta^+u_{k-1}^\varepsilon
+    }{\Delta\theta}
+    \right|
+    \le
+    \frac{2L_T}{\Delta\theta}.
+\]
+Therefore,
+\[
+\begin{aligned}
+&
+\varepsilon
+\Delta\theta
+\sum_{k=1}^K
+\frac{n_{j,k}^\varepsilon}{D_k}
+\left|
+\delta_\theta^2u_k^\varepsilon
+\right|
+\\
+&\qquad
+\le
+C
+\frac{\varepsilon L_T}{\Delta\theta}
+m_j^\varepsilon .
+\end{aligned}
+\]
+For the Hamiltonian term, (B3) yields
+\[
+\begin{aligned}
+&
+\Delta\theta
+\sum_{k=1}^K
+\frac{n_{j,k}^\varepsilon}{D_k}
+\left|
+\widehat H
+\left(
+    D_\theta^-u_k^\varepsilon,
+    D_\theta^+u_k^\varepsilon
+\right)
+\right|
+\\
+&\qquad
+\le
+C L_T^2 m_j^\varepsilon .
+\end{aligned}
+\]
+Finally, for the flux term,
+\[
+\begin{aligned}
+&
+2\varepsilon
+\Delta\theta
+\sum_{k=1}^K
+\frac{E_k^\varepsilon}{D_k}
+\left|
+\mathcal D_\theta
+\widehat{\mathcal F}_{j,k}
+\right|
+\\
+&\qquad
+\le
+C\varepsilon
+\sum_{k=1}^K
+E_k^\varepsilon
+\left(
+    |\widehat{\mathcal F}_{j,k+1/2}|
+    +
+    |\widehat{\mathcal F}_{j,k-1/2}|
+\right)
+\\
+&\qquad
+\le
+C
+\frac{\varepsilon L_T}{\Delta\theta}
+m_j^\varepsilon .
+\end{aligned}
+\]
+Combining the four estimates gives \eqref{eq:one_sided_remainder_bound}.
+The bound \eqref{eq:remainder_CR_bound} follows for fixed
+\(\Delta\theta\) and \(0<\varepsilon\le1\).
+\end{proof}
+
+
+\end{document}

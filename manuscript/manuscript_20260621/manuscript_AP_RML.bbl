@@ -1,0 +1,165 @@
+\begin{thebibliography}{10}
+
+\bibitem{AlmeidaPerthameRuan}
+Luis Almeida, Beno{\^i}t Perthame, and Xinran Ruan.
+\newblock An asymptotic preserving scheme for capturing concentrations in
+  age-structured models arising in adaptive dynamics.
+\newblock {\em Journal of Computational Physics}, 464:111335, 2022.
+
+\bibitem{ArnoldAbdallahNegulescu2011}
+Anton Arnold, Naoufel Ben~Abdallah, and Claudia Negulescu.
+\newblock {WKB}-based schemes for the oscillatory 1{D} {Schr{\"o}dinger}
+  equation in the semiclassical limit.
+\newblock {\em SIAM Journal on Numerical Analysis}, 49(4):1436--1460, 2011.
+
+\bibitem{BarlesPerthame}
+Guy Barles and Beno{\^i}t Perthame.
+\newblock Concentrations and constrained {Hamilton--Jacobi} equations arising
+  in adaptive dynamics.
+\newblock In {\em Recent Developments in Nonlinear Partial Differential
+  Equations}, volume 439 of {\em Contemporary Mathematics}, pages 57--68.
+  American Mathematical Society, 2007.
+
+\bibitem{BarlesPerthame2008}
+Guy Barles and Beno{\^i}t Perthame.
+\newblock Dirac concentrations in {Lotka--Volterra} parabolic {PDEs}.
+\newblock {\em Indiana University Mathematics Journal}, 57(7):3275--3301, 2008.
+
+\bibitem{BenderOrszag1999WKB}
+Carl~M. Bender and Steven~A. Orszag.
+\newblock {WKB} theory.
+\newblock In {\em Advanced Mathematical Methods for Scientists and Engineers I:
+  Asymptotic Methods and Perturbation Theory}, pages 484--543. Springer, New
+  York, 1999.
+
+\bibitem{BouinMirrahimi}
+Emeric Bouin and Sepideh Mirrahimi.
+\newblock A {Hamilton--Jacobi} limit for a model of population structured by
+  space and trait.
+\newblock {\em Communications in Mathematical Sciences}, 13(6):1431--1452,
+  2015.
+
+\bibitem{DesvillettesJabinMischlerRaoul}
+Laurent Desvillettes, Pierre-Emmanuel Jabin, St{\'e}phane Mischler, and
+  Ga{\"e}l Raoul.
+\newblock On selection dynamics for continuous structured populations.
+\newblock {\em Communications in Mathematical Sciences}, 6(3):729--747, 2008.
+
+\bibitem{DiekmannJabinMischlerPerthame}
+Odo Diekmann, Pierre-Emmanuel Jabin, St{\'e}phane Mischler, and Beno{\^i}t
+  Perthame.
+\newblock The dynamics of adaptation: an illuminating example and a
+  {Hamilton--Jacobi} approach.
+\newblock {\em Theoretical Population Biology}, 67(4):257--271, 2005.
+
+\bibitem{DockeryHutsonMischaikowPernarowski1998}
+Jack Dockery, Vivian Hutson, Konstantin Mischaikow, and Mark Pernarowski.
+\newblock The evolution of slow dispersal rates: a reaction diffusion model.
+\newblock {\em Journal of Mathematical Biology}, 37:61--83, 1998.
+
+\bibitem{HaoLamLou2019}
+Wenrui Hao, King-Yeung Lam, and Yuan Lou.
+\newblock Concentration phenomena in an integro-{PDE} model for evolution of
+  conditional dispersal.
+\newblock {\em Indiana University Mathematics Journal}, 68(3):881--923, 2019.
+
+\bibitem{Hastings1983}
+Alan Hastings.
+\newblock Can spatial variation alone lead to selection for dispersal?
+\newblock {\em Theoretical Population Biology}, 24(3):244--251, 1983.
+
+\bibitem{Hivert2018}
+H{\'e}l{\`e}ne Hivert.
+\newblock A first-order asymptotic preserving scheme for front propagation in a
+  one-dimensional kinetic reaction--transport equation.
+\newblock {\em Journal of Computational Physics}, 367:118--146, 2018.
+
+\bibitem{JiangPeng}
+Guang-Shan Jiang and Danping Peng.
+\newblock Weighted {ENO} schemes for {Hamilton--Jacobi} equations.
+\newblock {\em SIAM Journal on Scientific Computing}, 21(6):2126--2143, 2000.
+
+\bibitem{JinAP}
+Shi Jin.
+\newblock Asymptotic-preserving schemes for multiscale physical problems.
+\newblock {\em Acta Numerica}, 31:415--489, 2022.
+
+\bibitem{KoernerArnoldDoepfner2022}
+Jannis K{\"o}rner, Anton Arnold, and Kirian D{\"o}pfner.
+\newblock {WKB}-based scheme with adaptive step size control for the
+  {Schr{\"o}dinger} equation in the highly oscillatory regime.
+\newblock {\em Journal of Computational and Applied Mathematics}, 404:113905,
+  2022.
+
+\bibitem{Lam2017}
+King-Yeung Lam.
+\newblock Stability of {Dirac} concentrations in an integro-{PDE} model for
+  evolution of dispersal.
+\newblock {\em Calculus of Variations and Partial Differential Equations},
+  56:79, 2017.
+
+\bibitem{LamLouPerthame2023}
+King-Yeung Lam, Yuan Lou, and Beno{\^i}t Perthame.
+\newblock A {Hamilton--Jacobi} approach to evolution of dispersal.
+\newblock {\em Communications in Partial Differential Equations},
+  48(1):86--118, 2023.
+
+\bibitem{LorzMirrahimiPerthame}
+Alexander Lorz, Sepideh Mirrahimi, and Beno{\^i}t Perthame.
+\newblock Dirac mass dynamics in multidimensional nonlocal parabolic equations.
+\newblock {\em Communications in Partial Differential Equations},
+  36(6):1071--1098, 2011.
+
+\bibitem{LuoPayne2017}
+Songting Luo and Nicholas Payne.
+\newblock An asymptotic method based on a {Hopf--Cole} transformation for a
+  kinetic {BGK} equation in the hyperbolic limit.
+\newblock {\em Journal of Computational Physics}, 341:295--312, 2017.
+
+\bibitem{MirrahimiPerthame}
+Sepideh Mirrahimi and Beno{\^i}t Perthame.
+\newblock Asymptotic analysis of a selection model with space.
+\newblock {\em Journal de Math{\'e}matiques Pures et Appliqu{\'e}es},
+  104(6):1108--1118, 2015.
+
+\bibitem{OsherShu}
+Stanley Osher and Chi-Wang Shu.
+\newblock High-order essentially nonoscillatory schemes for {Hamilton--Jacobi}
+  equations.
+\newblock {\em SIAM Journal on Numerical Analysis}, 28(4):907--922, 1991.
+
+\bibitem{PerthameSouganidis}
+Beno{\^i}t Perthame and Panagiotis~E. Souganidis.
+\newblock Rare mutations limit of a steady state dispersal evolution model.
+\newblock {\em Mathematical Modelling of Natural Phenomena}, 11(4):154--166,
+  2016.
+
+\bibitem{Ronce2007}
+Oph{\'e}lie Ronce.
+\newblock How does it feel to be like a rolling stone? ten questions about
+  dispersal evolution.
+\newblock {\em Annual Review of Ecology, Evolution, and Systematics},
+  38:231--253, 2007.
+
+\bibitem{ShuHJ}
+Chi-Wang Shu.
+\newblock High order numerical methods for time dependent {Hamilton--Jacobi}
+  equations.
+\newblock In {\em Mathematics and Computation in Imaging Science and
+  Information Processing}, volume~11 of {\em Lecture Notes Series, Institute
+  for Mathematical Sciences, National University of Singapore}, pages 47--91.
+  World Scientific, Singapore, 2007.
+
+\bibitem{WangWong2007}
+Xiang-Sheng Wang and Roderick Wong.
+\newblock Discrete analogues of {Laplace}'s approximation.
+\newblock {\em Asymptotic Analysis}, 54(3--4):165--180, 2007.
+
+\bibitem{Wong2001}
+Roderick Wong.
+\newblock {\em Asymptotic Approximations of Integrals}, volume~34 of {\em
+  Classics in Applied Mathematics}.
+\newblock Society for Industrial and Applied Mathematics, Philadelphia, PA,
+  2001.
+
+\end{thebibliography}
